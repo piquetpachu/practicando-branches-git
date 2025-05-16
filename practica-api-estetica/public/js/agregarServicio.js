@@ -8,7 +8,7 @@ document.getElementById('formServicio').addEventListener('submit', async e => {
     precio: form.precio.value
   };
 
-  const res = await fetch('../api/agregar_servicio.php', {
+  const res = await fetch('../api/servicios/agregar_servicio.php', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(datos)
