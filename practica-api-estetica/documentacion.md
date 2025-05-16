@@ -134,5 +134,3 @@ Content-Type: application/json
 * Los servicios deben mostrarse en base a lo que retorna el `GET /api/servicios.php`.
 * Para eliminar o editar, el `id` es obligatorio.
 ---
-
-¿Querés que esta documentación te la pase como archivo descargable (`PDF`, `TXT`, `Markdown`)? ¿O la preparamos también para promociones si ya estás por agregarlas?
