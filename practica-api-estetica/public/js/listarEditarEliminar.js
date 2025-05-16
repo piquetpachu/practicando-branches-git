@@ -1,7 +1,7 @@
 const lista = document.getElementById('listaServicios');
 
 function cargarServicios() {
-  fetch('../api/servicios.php')
+  fetch('../api/servicios/servicios.php')
     .then(res => res.json())
     .then(data => {
       lista.innerHTML = '';
@@ -24,7 +24,7 @@ window.editar = async function(id) {
   const descripcion = document.getElementById(`desc-${id}`).value;
   const precio = document.getElementById(`precio-${id}`).value;
 
-  const res = await fetch('../api/editar_servicio.php', {
+  const res = await fetch('../api/servicios/editar_servicio.php', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ id, titulo, descripcion, precio })
@@ -38,7 +38,7 @@ window.editar = async function(id) {
 window.eliminar = async function(id) {
   if (!confirm("¿Estás seguro de eliminar este servicio?")) return;
 
-  const res = await fetch('../api/eliminar_servicio.php', {
+  const res = await fetch('../api/servicios/eliminar_servicio.php', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ id })
