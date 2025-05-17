@@ -1,7 +1,7 @@
 <?php
 session_start();
 if (!isset($_SESSION['usuario']) || $_SESSION['rol'] != 'admin') {
-    header("Location: ../api/login/login.php");
+    header("Location: login.php");
     exit();
 }
 ?>
@@ -26,6 +26,8 @@ if (!isset($_SESSION['usuario']) || $_SESSION['rol'] != 'admin') {
         placeholder="Precio"
         required
       /><br />
+      <input type="file" name="imagen" accept="image/*" /><br />
+      
       <button type="submit">Agregar</button>
     </form>
 
