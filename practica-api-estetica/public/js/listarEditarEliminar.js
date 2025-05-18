@@ -50,3 +50,11 @@ window.eliminar = async function(id) {
 };
 
 cargarServicios();
+
+fetch('../api/categorias/categorias.php?id=3', {
+  method: 'PUT',
+  headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+  body: new URLSearchParams({ nombre: 'Nombre actualizado' }),
+})
+  .then(res => res.json())
+  .then(data => console.log(data));

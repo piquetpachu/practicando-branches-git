@@ -9,3 +9,11 @@ fetch("../api/servicios/servicios.php")
     });
   })
   .catch((error) => console.error("Error al obtener servicios:", error));
+fetch('../api/categorias/categorias.php')
+  .then(res => res.json())
+  .then(data => {
+    data.forEach(categoria => {
+      console.log(categoria.id, categoria.nombre);
+    });
+  })
+  .catch(err => console.error("Error al obtener categorías:", err));
