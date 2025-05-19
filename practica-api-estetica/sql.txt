@@ -1,0 +1,43 @@
+-- Crear base de datos
+CREATE DATABASE IF NOT EXISTS web_salon;
+USE web_salon;
+
+-- Tabla de usuarios (para login)
+CREATE TABLE usuarios (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    usuario VARCHAR(50) NOT NULL UNIQUE,
+    contrasena VARCHAR(255) NOT NULL,
+    rol ENUM('admin', 'editor', 'cliente') DEFAULT 'cliente'
+);
+
+-- Insertar usuario administrador
+INSERT INTO usuarios (usuario, contrasena, rol)
+VALUES ('admin', '1234', 'admin');  -- luego podés usar password_hash()
+
+-- Tabla de categorías (opcional, para organizar servicios)
+CREATE TABLE categorias (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nombre VARCHAR(50) NOT NULL
+);
+
+-- Tabla de servicios
+CREATE TABLE servicios (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    titulo VARCHAR(100) NOT NULL,
+    descripcion TEXT,
+    precio DECIMAL(10,2),
+    imagen VARCHAR(255),
+    id_categoria INT,
+    FOREIGN KEY (id_categoria) REFERENCES categorias(id) ON DELETE SET NULL
+);
+
+-- Tabla de promociones
+CREATE TABLE promociones (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    titulo VARCHAR(100) NOT NULL,
+    descripcion TEXT,
+    descuento_porcentaje INT,
+    fecha_inicio DATE,
+    fecha_fin DATE,
+    imagen VARCHAR(255)
+);
