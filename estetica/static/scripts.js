@@ -1,25 +1,25 @@
-document.addEventListener("DOMContentLoaded", function () {
+function asignarEventosVerMas() {
   const botones = document.querySelectorAll(".boton-ver-mas");
 
   botones.forEach(boton => {
     boton.addEventListener("click", function () {
       const detalleActual = this.previousElementSibling;
 
-      // Cerrar cualquier otro detalle abierto
+      
       document.querySelectorAll(".detalle").forEach(detalle => {
         if (detalle !== detalleActual) {
           detalle.style.display = "none";
         }
       });
 
-      // Cambiar texto de todos los botones a "Ver más"
+      
       document.querySelectorAll(".boton-ver-mas").forEach(b => {
         if (b !== this) {
           b.textContent = "Ver más";
         }
       });
 
-      // Alternar el detalle actual
+      
       if (detalleActual.style.display === "block") {
         detalleActual.style.display = "none";
         this.textContent = "Ver más";
@@ -29,5 +29,9 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     });
   });
-});
+}
 
+// Al cargar el DOM asigno los eventos, por si hay botones estáticos
+document.addEventListener("DOMContentLoaded", function () {
+  asignarEventosVerMas();
+});

@@ -312,3 +312,121 @@ header {
   border-top: 2px solid #e0a6c5;
   border-bottom: 2px solid #e0a6c5;
 }
+
+
+
+@media (max-width: 1024px) {
+  .logo-nombre img {
+    height: 80px;
+  }
+
+  .logo-nombre span {
+    font-size: 3rem;
+  }
+
+  .nav-links {
+    gap: 20px;
+  }
+
+  .nav-links li a {
+    font-size: 1.5rem;
+  }
+
+  .portada img {
+    height: 500px;
+  }
+
+  .contenido {
+    flex-direction: column;
+    padding: 10px;
+  }
+
+  .contenido img {
+    max-width: 100%;
+  }
+
+  .contenido .texto {
+    font-size: 1.1rem;
+  }
+}
+
+@media (max-width: 768px) {
+  header {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 10px 20px;
+  }
+
+  .logo-nombre {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .logo-nombre span {
+    font-size: 2.5rem;
+  }
+
+  .nav-bar {
+    width: 100%;
+    margin-top: 10px;
+  }
+
+  .nav-links {
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  .portada img {
+    height: 350px;
+  }
+
+  .portada .texto {
+    position: static;
+    transform: none;
+    text-align: center;
+    max-width: 100%;
+    padding-left: 0;
+    font-size: 1.3rem;
+  }
+
+  .tarjeta-servicio {
+    flex: 0 0 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .logo-nombre img {
+    height: 60px;
+  }
+
+  .logo-nombre span {
+    font-size: 2rem;
+  }
+
+  .nav-links li a {
+    font-size: 1.2rem;
+  }
+
+  .portada img {
+    height: 250px;
+  }
+
+  .portada .texto {
+    font-size: 1.1rem;
+    padding: 10px;
+  }
+
+  .contenido .texto {
+    font-size: 1rem;
+  }
+
+  .separador-servicios,
+  .separador-promociones {
+    font-size: 1.5rem;
+    padding: 15px 0;
+  }
+
+  .footer {
+    font-size: 0.9rem;
+  }
+}
