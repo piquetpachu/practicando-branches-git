@@ -35,3 +35,22 @@ function asignarEventosVerMas() {
 document.addEventListener("DOMContentLoaded", function () {
   asignarEventosVerMas();
 });
+
+document.addEventListener("DOMContentLoaded", function () {
+  const botones = document.querySelectorAll(".boton-ver-mas");
+
+  botones.forEach((boton) => {
+    boton.addEventListener("click", function () {
+      const tarjeta = this.closest(".tarjeta-servicio");
+      const detalle = tarjeta.querySelector(".detalle");
+
+      if (detalle.classList.contains("oculto")) {
+        detalle.classList.remove("oculto");
+        this.textContent = "Ver menos";
+      } else {
+        detalle.classList.add("oculto");
+        this.textContent = "Ver más";
+      }
+    });
+  });
+});
