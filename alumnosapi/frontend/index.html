@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <title>Vue.js</title>
+  </head>
+  <body>
+    <h1>Alumnos</h1>
+    <div id="app">
+        <ul>
+            <li v-for="alumno in alumnos" :key="alumno.id">
+                <p>{{alumno.nombres}}</p>
+                <p>{{alumno.apellidos}}</p>
+            </li>
+        </ul>
+    </div>
+
+    <script>
+        const {createApp, ref, onMounted} = Vue;
+        const app = createApp({
+            setup(){
+                const alumnos = ref([])
+                const obtenerAlumnos = async () => {
+                    const respuesta = await axios.get("http://localhost/estetica/practicando-branches-git/alumnosapi/backend/src/");
+                    alumnos.value = respuesta.data;
+                };
+                onMounted(()=>{
+                    obtenerAlumnos();
+                });
+                return{alumnos};
+            }
+        });
+        app.mount('#app');
+
+    </script>
+  </body>
+</html>
