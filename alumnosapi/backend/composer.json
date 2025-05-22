@@ -1,0 +1,16 @@
+{
+    "name": "pachu/backend",
+    "autoload": {
+        "psr-4": {
+            "Pachu\\Backend\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "nacho"
+        }
+    ],
+    "require": {
+        "bramus/router": "~1.6"
+    }
+}
