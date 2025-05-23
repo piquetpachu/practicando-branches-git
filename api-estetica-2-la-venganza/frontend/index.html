@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Prueba de API Estética</title>
+</head>
+<body>
+  <h1>Servicios</h1>
+  <button onclick="obtenerServicios()">Ver todos</button>
+  <div id="listaServicios"></div>
+
+  <h2>Crear servicio</h2>
+  <button onclick="crearServicio()">Crear nuevo</button>
+
+  <h2>Ver uno por ID</h2>
+  <input id="verId" placeholder="ID a ver">
+  <button onclick="verServicio()">Ver</button>
+
+  <h2>Actualizar servicio</h2>
+  <button onclick="actualizarServicio()">Actualizar ID 1</button>
+
+  <h2>Borrar servicio</h2>
+  <button onclick="borrarServicio(1)">Borrar ID 1</button>
+
+  <script>
+    const baseURL = 'http://localhost/estetica/practicando-branches-git/api-estetica-2-la-venganza/backend'; // cambia por la ruta real a tu API
+
+    function obtenerServicios() {
+      fetch(`${baseURL}/`)
+        .then(res => res.json())
+        .then(data => {
+          const contenedor = document.getElementById('listaServicios');
+          contenedor.innerHTML = '';
+          data.forEach(s => {
+            contenedor.innerHTML += `<p><strong>${s.id}</strong>: ${s.titulo} - $${s.precio}</p>`;
+          });
+        });
+    }
+
+    function crearServicio() {
+      fetch(`${baseURL}/crear`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          titulo: 'Masaje relajante',
+          descripcion: 'Ideal para relajar cuerpo y mente.',
+          precio: 2500,
+          descuento: 10,
+          imagen: null
+        })
+      })
+      .then(res => res.json())
+      .then(data => alert(data.mensaje));
+    }
+
+    function verServicio() {
+      const id = document.getElementById('verId').value;
+      fetch(`${baseURL}/ver/${id}`)
+        .then(res => res.json())
+        .then(data => alert(JSON.stringify(data[0])));
+    }
+
+    function actualizarServicio() {
+      fetch(`${baseURL}/actualizar`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: 1,
+          titulo: 'Masaje profundo',
+          descripcion: 'Para contracturas intensas.',
+          precio: 3000,
+          descuento: 5,
+          imagen: null
+        })
+      })
+      .then(res => res.json())
+      .then(data => alert(data.mensaje));
+    }
+
+    function borrarServicio(id) {
+      fetch(`${baseURL}/borrar`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id })
+      })
+      .then(res => res.json())
+      .then(data => alert(data.mensaje));
+    }
+  </script>
+</body>
+</html>
