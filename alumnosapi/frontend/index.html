@@ -8,8 +8,15 @@
     <title>Vue.js</title>
   </head>
   <body>
-    <h1>Alumnos</h1>
-    <div id="app">
+      <div id="app">
+        <h1>Alumnos</h1>
+        <form @submit.prevent='crearAlumno'>
+            <label for="nombres">Nombres:</label>
+            <input type="text" name="nombres" v-model="nuevoAlumno.nombres" id="nombres" placeholder="Nombres" />
+            <label for="apellidos">Apellidos:</label>
+            <input type="text" name="apellidos" v-model="nuevoAlumno.apellidos" id="apellidos" placeholder="Apellidos" />
+            <button type="submit">Crear</button>
+        </form>
         <ul>
             <li v-for="alumno in alumnos" :key="alumno.id">
                 <p>{{alumno.nombres}}</p>
@@ -22,15 +29,31 @@
         const {createApp, ref, onMounted} = Vue;
         const app = createApp({
             setup(){
+                const apiurl = 'http://localhost/estetica/practicando-branches-git/alumnosapi/backend/src/'
                 const alumnos = ref([])
+                const nuevoAlumno =ref({nombre:'', apellidos: '' })
                 const obtenerAlumnos = async () => {
-                    const respuesta = await axios.get("http://localhost/estetica/practicando-branches-git/alumnosapi/backend/src/");
+                    const respuesta = await axios.get(apiurl);
                     alumnos.value = respuesta.data;
                 };
+                crearAlumno = async () => {
+                    try {
+                        const respuesta = await axios.post("", nuevoAlumno.value);
+                        console.log(respuesta);
+                        alumnos.push(respuesta.data);
+                        nuevoAlumno.value = { nombre: '', apellidos: '' };
+                        obtenerAlumnos();
+                    } catch (error) {
+                        console.error(error)
+                    }
+                    const respuesta = await axios.post(apiurl, nuevoAlumno.value);
+                    console.log(respuesta);
+                    obtenerAlumnos();
+                }
                 onMounted(()=>{
                     obtenerAlumnos();
                 });
-                return{alumnos};
+                return{alumnos, crearAlumno, nuevoAlumno };
             }
         });
         app.mount('#app');

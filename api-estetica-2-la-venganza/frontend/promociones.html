@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Gestión de Promociones</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; }
+    table { border-collapse: collapse; width: 100%; margin-bottom: 20px; }
+    th, td { border: 1px solid #ccc; padding: 8px; }
+    th { background-color: #f4f4f4; }
+    input, button { margin: 5px 0; padding: 6px; }
+  </style>
+</head>
+<body>
+  <h1>Promociones</h1>
+
+  <table id="tabla-promociones">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Título</th>
+        <th>Descripción</th>
+        <th>Descuento</th>
+        <th>Imagen</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <h2 id="form-title">Nueva Promoción</h2>
+  <form id="form-promocion">
+    <input type="hidden" id="id" />
+    <label>Título:<br><input type="text" id="titulo" required></label><br>
+    <label>Descripción:<br><input type="text" id="descripcion"></label><br>
+    <label>Descuento (%):<br><input type="number" step="0.01" id="descuento" required></label><br>
+    <label>Imagen (URL):<br><input type="text" id="imagen"></label><br>
+    <button type="submit">Guardar</button>
+  </form>
+
+  <script>
+    const API_URL = "http://localhost/estetica/practicando-branches-git/api-estetica-2-la-venganza/backend"; // Cambiá según tu ruta
+
+    const tabla = document.querySelector("#tabla-promociones tbody");
+    const form = document.getElementById("form-promocion");
+    const formTitle = document.getElementById("form-title");
+
+    const idField = document.getElementById("id");
+    const titulo = document.getElementById("titulo");
+    const descripcion = document.getElementById("descripcion");
+    const descuento = document.getElementById("descuento");
+    const imagen = document.getElementById("imagen");
+
+    function cargarPromociones() {
+      fetch(`${API_URL}/promociones`)
+        .then(res => res.json())
+        .then(data => {
+          tabla.innerHTML = "";
+          data.forEach(p => {
+            const row = document.createElement("tr");
+            row.innerHTML = `
+              <td>${p.id}</td>
+              <td>${p.titulo}</td>
+              <td>${p.descripcion || ''}</td>
+              <td>${p.descuento}%</td>
+              <td>${p.imagen ? `<img src="${p.imagen}" width="50">` : '—'}</td>
+              <td>
+                <button onclick="editar(${p.id})">Editar</button>
+                <button onclick="eliminar(${p.id})">Eliminar</button>
+              </td>
+            `;
+            tabla.appendChild(row);
+          });
+        });
+    }
+
+    form.addEventListener("submit", e => {
+      e.preventDefault();
+
+      const datos = {
+        titulo: titulo.value,
+        descripcion: descripcion.value,
+        descuento: descuento.value,
+        imagen: imagen.value
+      };
+
+      const id = idField.value;
+      const metodo = id ? "PUT" : "POST";
+      const url = id ? `${API_URL}/promociones/${id}` : `${API_URL}/promociones`;
+
+      fetch(url, {
+        method: metodo,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(datos)
+      })
+        .then(res => res.json())
+        .then(() => {
+          form.reset();
+          idField.value = "";
+          formTitle.textContent = "Nueva Promoción";
+          cargarPromociones();
+        });
+    });
+
+    function editar(id) {
+      fetch(`${API_URL}/promociones/${id}`)
+        .then(res => res.json())
+        .then(p => {
+          idField.value = p.id;
+          titulo.value = p.titulo;
+          descripcion.value = p.descripcion;
+          descuento.value = p.descuento;
+          imagen.value = p.imagen;
+          formTitle.textContent = "Editar Promoción";
+        });
+    }
+
+    function eliminar(id) {
+      if (confirm("¿Eliminar esta promoción?")) {
+        fetch(`${API_URL}/promociones/${id}`, { method: "DELETE" })
+          .then(() => cargarPromociones());
+      }
+    }
+
+    cargarPromociones();
+  </script>
+</body>
+</html>

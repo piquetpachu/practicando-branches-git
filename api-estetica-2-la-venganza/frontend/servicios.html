@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Gestión de Servicios</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f4f4f9;
+      padding: 20px;
+      color: #333;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: auto;
+      background: #fff;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    h1, h2 {
+      margin-bottom: 20px;
+      color: #2c3e50;
+    }
+
+    input, textarea {
+      width: 100%;
+      padding: 10px;
+      margin: 8px 0 16px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+
+    button {
+      background-color: #0077cc;
+      color: white;
+      padding: 10px 16px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    button:hover {
+      background-color: #005fa3;
+    }
+
+    .servicio {
+      background: #eef6ff;
+      padding: 15px;
+      border-radius: 10px;
+      margin-bottom: 15px;
+      border-left: 5px solid #0077cc;
+    }
+
+    .servicio-actions {
+      margin-top: 10px;
+    }
+
+    .servicio-actions button {
+      margin-right: 10px;
+      background-color: #2980b9;
+    }
+
+    .servicio-actions button.eliminar {
+      background-color: #e74c3c;
+    }
+
+    .servicio-actions button:hover {
+      opacity: 0.9;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Servicios</h1>
+
+    <button onclick="obtenerServicios()">Cargar todos los servicios</button>
+    <div id="listaServicios"></div>
+
+    <h2>Crear nuevo servicio</h2>
+    <form id="formServicio" onsubmit="crearServicio(event)">
+      <input type="text" id="titulo" placeholder="Título" required>
+      <textarea id="descripcion" placeholder="Descripción" required></textarea>
+      <input type="number" id="precio" placeholder="Precio" required>
+      <input type="number" id="descuento" placeholder="Descuento (%)">
+      <input type="text" id="imagen" placeholder="URL de imagen (opcional)">
+      <button type="submit">Crear servicio</button>
+    </form>
+  </div>
+
+  <script>
+    const baseURL = 'http://localhost/estetica/practicando-branches-git/api-estetica-2-la-venganza/backend';
+
+    function obtenerServicios() {
+      fetch(`${baseURL}/`)
+        .then(res => res.json())
+        .then(data => {
+          const contenedor = document.getElementById('listaServicios');
+          contenedor.innerHTML = '';
+          data.forEach(s => {
+            contenedor.innerHTML += `
+              <div class="servicio">
+                <p><strong>ID:</strong> ${s.id}</p>
+                <p><strong>Título:</strong> ${s.titulo}</p>
+                <p><strong>Descripción:</strong> ${s.descripcion}</p>
+                <p><strong>Precio:</strong> $${s.precio}</p>
+                <p><strong>Descuento:</strong> ${s.descuento || 0}%</p>
+                <div class="servicio-actions">
+                  <button onclick="editarServicio(${s.id}, '${s.titulo}', '${s.descripcion}', ${s.precio}, ${s.descuento})">Editar</button>
+                  <button class="eliminar" onclick="borrarServicio(${s.id})">Eliminar</button>
+                </div>
+              </div>`;
+          });
+        });
+    }
+
+    function crearServicio(e) {
+      e.preventDefault();
+      const titulo = document.getElementById('titulo').value;
+      const descripcion = document.getElementById('descripcion').value;
+      const precio = parseFloat(document.getElementById('precio').value);
+      const descuento = parseFloat(document.getElementById('descuento').value) || 0;
+      const imagen = document.getElementById('imagen').value || null;
+
+      fetch(`${baseURL}/crear`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ titulo, descripcion, precio, descuento, imagen })
+      })
+      .then(res => res.json())
+      .then(data => {
+        alert(data.mensaje);
+        document.getElementById('formServicio').reset();
+        obtenerServicios();
+      });
+    }
+
+    function editarServicio(id, titulo, descripcion, precio, descuento) {
+      const nuevoTitulo = prompt("Nuevo título:", titulo) || titulo;
+      const nuevaDescripcion = prompt("Nueva descripción:", descripcion) || descripcion;
+      const nuevoPrecio = parseFloat(prompt("Nuevo precio:", precio)) || precio;
+      const nuevoDescuento = parseFloat(prompt("Nuevo descuento:", descuento)) || descuento;
+
+      fetch(`${baseURL}/actualizar`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id,
+          titulo: nuevoTitulo,
+          descripcion: nuevaDescripcion,
+          precio: nuevoPrecio,
+          descuento: nuevoDescuento,
+          imagen: null
+        })
+      })
+      .then(res => res.json())
+      .then(data => {
+        alert(data.mensaje);
+        obtenerServicios();
+      });
+    }
+
+    function borrarServicio(id) {
+      if (!confirm(`¿Estás seguro de borrar el servicio con ID ${id}?`)) return;
+
+      fetch(`${baseURL}/borrar`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id })
+      })
+      .then(res => res.json())
+      .then(data => {
+        alert(data.mensaje);
+        obtenerServicios();
+      });
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Gestión de Turnos</title>
+    <style>
+      body {
+        font-family: sans-serif;
+        margin: 20px;
+      }
+      table {
+        border-collapse: collapse;
+        width: 100%;
+        margin-top: 20px;
+      }
+      th,
+      td {
+        border: 1px solid #ddd;
+        padding: 8px;
+        text-align: center;
+      }
+      th {
+        background-color: #f2f2f2;
+      }
+      form {
+        margin-bottom: 20px;
+      }
+      input,
+      select {
+        padding: 5px;
+        margin-right: 10px;
+      }
+      button {
+        padding: 5px 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Turnos</h1>
+
+    <form id="turnoForm">
+      <input type="hidden" id="turnoId" />
+      <label
+        >Fecha y Hora: <input type="datetime-local" id="fecha_hora" required
+      /></label>
+      <label
+        >Usuario:
+        <select id="usuario_id" name="usuario_id" required>
+          <option value="">Seleccione un usuario</option>
+        </select>
+      </label>
+      <label
+        >Servicio:
+        <select id="servicio_id" name="servicio_id" required>
+          <option value="">Seleccione un servicio</option>
+        </select>
+      </label>
+      <button type="submit">Guardar</button>
+      <button type="button" onclick="resetForm()">Cancelar</button>
+    </form>
+
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Fecha y Hora</th>
+          <th>Usuario</th>
+          <th>Servicio</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody id="turnosTable"></tbody>
+    </table>
+
+    <script>
+      const BASE_URL =
+        "http://localhost/estetica/practicando-branches-git/api-estetica-2-la-venganza/backend";
+
+      // Cargar datos iniciales
+      document.addEventListener("DOMContentLoaded", () => {
+        cargarTurnos();
+        cargarUsuarios();
+        cargarServicios();
+      });
+
+      // Cargar todos los turnos
+      async function cargarTurnos() {
+        const res = await fetch(`${BASE_URL}/turnos`);
+        const turnos = await res.json();
+        const tabla = document.getElementById("turnosTable");
+        tabla.innerHTML = "";
+
+        turnos.forEach((t) => {
+          const fila = document.createElement("tr");
+          fila.innerHTML = `
+      <td>${t.id}</td>
+      <td>${new Date(t.fecha_hora).toLocaleString()}</td>
+      <td>${t.usuario}</td>
+      <td>${t.servicio}</td>
+      <td>
+        <button onclick="editarTurno(${t.id}, '${t.fecha_hora}', ${
+            t.usuario_id || 1
+          }, ${t.servicio_id || 1})">Editar</button>
+        <button onclick="eliminarTurno(${t.id})">Eliminar</button>
+      </td>
+    `;
+          tabla.appendChild(fila);
+        });
+      }
+
+      // Enviar nuevo turno o actualizar existente
+      document
+        .getElementById("turnoForm")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const id = document.getElementById("turnoId").value;
+          const fecha_hora = document.getElementById("fecha_hora").value;
+          const usuario_id = document.getElementById("usuario_id").value;
+          const servicio_id = document.getElementById("servicio_id").value;
+
+          const datos = { fecha_hora, usuario_id, servicio_id };
+
+          if (id) {
+            await fetch(`${BASE_URL}/turnos/${id}`, {
+              method: "PUT",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(datos),
+            });
+          } else {
+            await fetch(`${BASE_URL}/turnos`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(datos),
+            });
+          }
+
+          resetForm();
+          cargarTurnos();
+        });
+
+      function editarTurno(id, fecha_hora, usuario_id, servicio_id) {
+        document.getElementById("turnoId").value = id;
+        document.getElementById("fecha_hora").value = fecha_hora.substring(
+          0,
+          16
+        );
+        document.getElementById("usuario_id").value = usuario_id;
+        document.getElementById("servicio_id").value = servicio_id;
+      }
+
+      async function eliminarTurno(id) {
+        if (confirm("¿Estás seguro de eliminar este turno?")) {
+          await fetch(`${BASE_URL}/turnos/${id}`, { method: "DELETE" });
+          cargarTurnos();
+        }
+      }
+
+      function resetForm() {
+        document.getElementById("turnoForm").reset();
+        document.getElementById("turnoId").value = "";
+      }
+
+      async function cargarUsuarios() {
+        const res = await fetch(`${BASE_URL}/usuarios`);
+        const usuario = await res.json();
+        const select = document.getElementById("usuario_id");
+        select.innerHTML = usuario
+          .map((u) => `<option value="${u.id}">${u.nombre}</option>`)
+          .join("");
+      }
+
+      async function cargarServicios() {
+        const res = await fetch(`${BASE_URL}/servicios`);
+        const servicios = await res.json();
+        const select = document.getElementById("servicio_id");
+        select.innerHTML = servicios
+          .map((s) => `<option value="${s.id}">${s.titulo}</option>`)
+          .join("");
+      }
+
+      document.addEventListener("DOMContentLoaded", function () {
+        // Llenar el select de usuarios
+        fetch(
+          "http://localhost/estetica/practicando-branches-git/api-estetica-2-la-venganza/backend/login"
+        )
+          .then((response) => response.json())
+          .then((data) => {
+            const usuarioSelect = document.getElementById("usuario_id");
+            data.forEach((usuario) => {
+              const option = document.createElement("option");
+              option.value = usuario.id;
+              option.textContent = usuario.nombre;
+              usuarioSelect.appendChild(option);
+            });
+          })
+          .catch((error) => console.error("Error cargando usuarios:", error));
+
+        // Llenar el select de servicios
+        fetch(
+          "http://localhost/estetica/practicando-branches-git/api-estetica-2-la-venganza/backend/"
+        )
+          .then((response) => response.json())
+          .then((data) => {
+            const servicioSelect = document.getElementById("servicio_id");
+            data.forEach((servicio) => {
+              const option = document.createElement("option");
+              option.value = servicio.id;
+              option.textContent = servicio.titulo;
+              servicioSelect.appendChild(option);
+            });
+          })
+          .catch((error) => console.error("Error cargando servicios:", error));
+      });
+    </script>
+  </body>
+</html>

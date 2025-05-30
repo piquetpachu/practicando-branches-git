@@ -1,0 +1,28 @@
+<h2>Estadisticas Mensuales</h2>
+<table border="1">
+  <thead>
+    <tr>
+      <th>Mes</th>
+      <th>Turnos</th>
+      <th>Ingresos Totales</th>
+    </tr>
+  </thead>
+  <tbody id="estadisticas-body"></tbody>
+</table>
+
+<script>
+const baseURL='http://localhost/estetica/practicando-branches-git/api-estetica-2-la-venganza/backend'
+fetch(`${baseURL}/estadisticas`)
+  .then(res => res.json())
+  .then(data => {
+    const tbody = document.getElementById('estadisticas-body');
+    data.forEach(e => {
+      const fila = `<tr>
+        <td>${e.mes}</td>
+        <td>${e.cantidad_turnos}</td>
+        <td>$${e.ingresos_totales}</td>
+      </tr>`;
+      tbody.innerHTML += fila;
+    });
+  });
+</script>
