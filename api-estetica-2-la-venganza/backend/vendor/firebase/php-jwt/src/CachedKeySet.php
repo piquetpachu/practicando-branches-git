@@ -75,6 +75,17 @@ class CachedKeySet implements ArrayAccess
      */
     private $defaultAlg;
 
+    /**
+     * Initializes a CachedKeySet instance for managing and caching JWKS keys from a remote URI.
+     *
+     * @param string $jwksUri The URI of the JWKS endpoint.
+     * @param ClientInterface $httpClient PSR-18 HTTP client for fetching JWKS data.
+     * @param RequestFactoryInterface $httpFactory PSR-17 request factory for creating HTTP requests.
+     * @param CacheItemPoolInterface $cache PSR-6 cache pool for storing key sets and rate limit data.
+     * @param int|null $expiresAfter Optional cache expiration time in seconds.
+     * @param bool $rateLimit Whether to enable rate limiting for JWKS fetches.
+     * @param string|null $defaultAlg Optional default algorithm to use when parsing keys.
+     */
     public function __construct(
         string $jwksUri,
         ClientInterface $httpClient,
@@ -94,9 +105,12 @@ class CachedKeySet implements ArrayAccess
         $this->setCacheKeys();
     }
 
-    /**
-     * @param string $keyId
-     * @return Key
+    /****
+     * Retrieves the cryptographic key associated with the specified key ID.
+     *
+     * @param string $keyId The key ID to retrieve.
+     * @return Key The parsed cryptographic key corresponding to the given key ID.
+     * @throws OutOfBoundsException If the key ID does not exist in the key set.
      */
     public function offsetGet($keyId): Key
     {
@@ -107,25 +121,32 @@ class CachedKeySet implements ArrayAccess
     }
 
     /**
-     * @param string $keyId
-     * @return bool
+     * Determines whether a key with the specified key ID exists in the key set.
+     *
+     * Checks the cached key set for the given key ID, fetching and caching keys from the JWKS URI if necessary.
+     *
+     * @param string $keyId The key ID to check for existence.
+     * @return bool True if the key exists, false otherwise.
      */
     public function offsetExists($keyId): bool
     {
         return $this->keyIdExists($keyId);
     }
 
-    /**
-     * @param string $offset
-     * @param Key $value
+    /****
+     * Disallows setting keys directly in the key set.
+     *
+     * @throws LogicException Always thrown, as direct key assignment is not supported.
      */
     public function offsetSet($offset, $value): void
     {
         throw new LogicException('Method not implemented');
     }
 
-    /**
-     * @param string $offset
+    /****
+     * Throws an exception as unsetting keys is not supported.
+     *
+     * @throws LogicException Always thrown to indicate this operation is not implemented.
      */
     public function offsetUnset($offset): void
     {
@@ -133,7 +154,15 @@ class CachedKeySet implements ArrayAccess
     }
 
     /**
-     * @return array<mixed>
+     * Parses a JWKS JSON string and returns an associative array of keys indexed by key ID.
+     *
+     * Decodes the provided JWKS JSON, validates the presence and non-emptiness of the "keys" member,
+     * and constructs an array where each key is indexed by its "kid" value or by its array index if "kid" is missing.
+     *
+     * @param string $jwks JWKS JSON string to parse.
+     * @return array<mixed> Associative array of keys indexed by key ID.
+     * @throws UnexpectedValueException If the "keys" member is missing.
+     * @throws InvalidArgumentException If the "keys" array is empty.
      */
     private function formatJwksForCache(string $jwks): array
     {
@@ -156,6 +185,15 @@ class CachedKeySet implements ArrayAccess
         return $keys;
     }
 
+    /**
+     * Checks if a key with the specified key ID exists in the key set.
+     *
+     * Attempts to load the key set from cache; if not found, optionally fetches the JWKS from the remote URI (subject to rate limiting), parses and caches the result, and checks for the key ID.
+     *
+     * @param string $keyId The key ID to check for existence.
+     * @return bool True if the key ID exists in the key set; false otherwise.
+     * @throws UnexpectedValueException If the JWKS fetch returns a non-200 HTTP response.
+     */
     private function keyIdExists(string $keyId): bool
     {
         if (null === $this->keySet) {
@@ -205,6 +243,13 @@ class CachedKeySet implements ArrayAccess
         return true;
     }
 
+    /**
+     * Determines if the rate limit for JWKS fetches has been exceeded.
+     *
+     * Checks and updates the number of JWKS fetch attempts within the current minute using the cache. Returns true if the maximum allowed calls per minute has been surpassed; otherwise, increments the call count and returns false.
+     *
+     * @return bool True if the rate limit is exceeded, false otherwise.
+     */
     private function rateLimitExceeded(): bool
     {
         if (!$this->rateLimit) {
@@ -231,6 +276,13 @@ class CachedKeySet implements ArrayAccess
         return false;
     }
 
+    /**
+     * Retrieves and caches the main cache item for the JWKS key set.
+     *
+     * Lazily loads the cache item associated with the JWKS URI, storing it for future access.
+     *
+     * @return CacheItemInterface The cache item containing the JWKS key set.
+     */
     private function getCacheItem(): CacheItemInterface
     {
         if (\is_null($this->cacheItem)) {
@@ -240,6 +292,13 @@ class CachedKeySet implements ArrayAccess
         return $this->cacheItem;
     }
 
+    /**
+     * Generates and assigns sanitized cache keys for the JWKS and rate limiting based on the JWKS URI.
+     *
+     * Ensures cache keys are valid, prefixed, and within the maximum allowed length. Hashes keys if necessary.
+     *
+     * @throws RuntimeException If the JWKS URI is empty.
+     */
     private function setCacheKeys(): void
     {
         if (empty($this->jwksUri)) {

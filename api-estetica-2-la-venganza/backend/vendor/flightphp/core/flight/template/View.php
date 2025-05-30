@@ -32,10 +32,10 @@ class View
     /** Template file. */
     private string $template;
 
-    /**
-     * Constructor.
+    /****
+     * Initializes the View instance with the specified templates directory path.
      *
-     * @param string $path Path to templates directory
+     * @param string $path Directory path where view templates are located. Defaults to the current directory.
      */
     public function __construct(string $path = '.')
     {
@@ -43,9 +43,10 @@ class View
     }
 
     /**
-     * Gets a template variable.
+     * Retrieves the value of a template variable by key.
      *
-     * @return mixed Variable value or `null` if doesn't exists
+     * @param string $key The name of the template variable.
+     * @return mixed The value of the variable, or null if it is not set.
      */
     public function get(string $key)
     {
@@ -53,11 +54,12 @@ class View
     }
 
     /**
-     * Sets a template variable.
+     * Assigns one or more variables to the template.
      *
-     * @param string|iterable<string, mixed> $key
-     * @param mixed $value Value
+     * Accepts either a single key-value pair or an iterable of key-value pairs to set multiple variables at once. Returns the instance for method chaining.
      *
+     * @param string|iterable<string, mixed> $key Variable name or iterable of key-value pairs.
+     * @param mixed $value Value to assign if setting a single variable.
      * @return self
      */
     public function set($key, $value = null): self
@@ -73,10 +75,11 @@ class View
         return $this;
     }
 
-    /**
-     * Checks if a template variable is set.
+    /****
+     * Determines whether a template variable with the specified key exists.
      *
-     * @return bool If key exists
+     * @param string $key The name of the template variable to check.
+     * @return bool True if the variable is set; otherwise, false.
      */
     public function has(string $key): bool
     {
@@ -84,9 +87,10 @@ class View
     }
 
     /**
-     * Unsets a template variable. If no key is passed in, clear all variables.
+     * Removes a specific template variable or clears all variables if no key is provided.
      *
-     * @return $this
+     * @param string|null $key The variable key to remove, or null to clear all variables.
+     * @return self The current instance for method chaining.
      */
     public function clear(?string $key = null): self
     {
@@ -99,13 +103,13 @@ class View
         return $this;
     }
 
-    /**
-     * Renders a template.
+    /****
+     * Renders a template file, extracting stored and optional data variables into the template scope.
      *
-     * @param string $file Template file
-     * @param ?array<string, mixed> $data Template data
+     * @param string $file Name or path of the template file to render.
+     * @param array<string, mixed>|null $data Optional associative array of variables to extract into the template.
      *
-     * @throws \Exception If template not found
+     * @throws \Exception If the template file does not exist.
      */
     public function render(string $file, ?array $data = null): void
     {
@@ -130,12 +134,13 @@ class View
     }
 
     /**
-     * Gets the output of a template.
+     * Renders a template and returns its output as a string.
      *
-     * @param string $file Template file
-     * @param ?array<string, mixed> $data Template data
+     * Captures the rendered output of the specified template file, optionally using additional data, and returns it instead of sending it directly to the output.
      *
-     * @return string Output of template
+     * @param string $file The template file to render.
+     * @param array<string, mixed>|null $data Optional data to be used within the template.
+     * @return string The rendered template output.
      */
     public function fetch(string $file, ?array $data = null): string
     {
@@ -147,11 +152,10 @@ class View
     }
 
     /**
-     * Checks if a template file exists.
+     * Determines whether the specified template file exists.
      *
-     * @param string $file Template file
-     *
-     * @return bool Template file exists
+     * @param string $file Name or path of the template file to check.
+     * @return bool True if the template file exists; otherwise, false.
      */
     public function exists(string $file): bool
     {
@@ -159,11 +163,12 @@ class View
     }
 
     /**
-     * Gets the full path to a template file.
+     * Resolves and returns the absolute path to a template file.
      *
-     * @param string $file Template file
+     * Appends the configured extension if missing and handles both absolute and relative paths for Unix and Windows systems.
      *
-     * @return string Template file location
+     * @param string $file The template file name or path.
+     * @return string The absolute path to the template file.
      */
     public function getTemplate(string $file): string
     {
@@ -183,11 +188,10 @@ class View
     }
 
     /**
-     * Displays escaped output.
+     * Escapes a string for safe HTML output, echoes it, and returns the escaped value.
      *
-     * @param string $str String to escape
-     *
-     * @return string Escaped string
+     * @param string $str The string to be escaped.
+     * @return string The HTML-escaped string.
      */
     public function e(string $str): string
     {
@@ -196,6 +200,13 @@ class View
         return $value;
     }
 
+    /**
+     * Normalizes a file path by replacing all slashes and backslashes with the specified directory separator.
+     *
+     * @param string $path The file path to normalize.
+     * @param string $separator The directory separator to use. Defaults to the system directory separator.
+     * @return string The normalized file path.
+     */
     protected static function normalizePath(string $path, string $separator = DIRECTORY_SEPARATOR): string
     {
         return \str_replace(['\\', '/'], $separator, $path);

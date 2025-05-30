@@ -49,15 +49,13 @@ class Dispatcher
      */
     protected $containerHandler = null;
 
-    /**
-     * Sets the dependency injection container handler.
+    /****
+     * Assigns a dependency injection container handler for resolving class instances.
      *
-     * @param ContainerInterface|(callable(class-string<T> $classString, array<int, mixed> $params): ?T) $containerHandler
-     * Dependency injection container.
+     * Accepts either a PSR-11 container or a callable that returns an object instance for a given class name and parameters.
      *
-     * @template T of object
-     *
-     * @throws InvalidArgumentException If $containerHandler is not a `callable` or instance of `Psr\Container\ContainerInterface`.
+     * @param mixed $containerHandler A PSR-11 container or a callable for resolving class instances.
+     * @throws InvalidArgumentException If the provided handler is neither callable nor a PSR-11 container.
      */
     public function setContainerHandler($containerHandler): void
     {
@@ -77,19 +75,25 @@ class Dispatcher
         );
     }
 
+    /**
+     * Assigns an Engine instance to the dispatcher for use in event and callback resolution.
+     *
+     * @param Engine $engine The Engine instance to associate with the dispatcher.
+     */
     public function setEngine(Engine $engine): void
     {
         $this->engine = $engine;
     }
 
     /**
-     * Dispatches an event.
+     * Executes the specified event by name, applying pre- and post-filters.
      *
-     * @param string $name Event name.
-     * @param array<int, mixed> $params Callback parameters.
+     * Runs all 'before' filters for the event, invokes the event callback with the provided parameters, and then applies all 'after' filters to the callback's output.
      *
-     * @return mixed Output of callback
-     * @throws Exception If event name isn't found or if event throws an `Exception`.
+     * @param string $name The event name to dispatch.
+     * @param array<int, mixed> $params Optional parameters to pass to the event callback.
+     * @return mixed The result of the event callback, possibly modified by post-filters.
+     * @throws Exception If the event is not found or if the event callback throws an exception.
      */
     public function run(string $name, array $params = [])
     {
@@ -100,10 +104,14 @@ class Dispatcher
     }
 
     /**
-     * @param array<int, mixed> &$params
+     * Executes all 'before' filters for the specified event, allowing modification of parameters.
      *
-     * @return $this
-     * @throws Exception
+     * Each filter receives the event parameters by reference and can alter them before the main event callback is executed. If any filter throws an exception, it is propagated to the caller.
+     *
+     * @param string $eventName Name of the event whose pre-filters should be executed.
+     * @param array<int, mixed> &$params Parameters to be passed to the event, passed by reference and modifiable by filters.
+     * @return $this Returns the dispatcher instance for method chaining.
+     * @throws Exception If any pre-filter throws an exception.
      */
     protected function runPreFilters(string $eventName, array &$params): self
     {
@@ -116,11 +124,15 @@ class Dispatcher
         return $this;
     }
 
-    /**
-     * @param array<int, mixed> &$params
+    /****
+     * Executes the callback associated with the specified event.
      *
-     * @return void|mixed
-     * @throws Exception
+     * Retrieves the event callback by name and invokes it with the provided parameters. Throws an exception if the event is not registered.
+     *
+     * @param string $eventName Name of the event to execute.
+     * @param array<int, mixed> &$params Parameters to pass to the event callback, passed by reference.
+     * @return mixed The result of the event callback.
+     * @throws Exception If the event is not found or if the callback throws an exception.
      */
     protected function runEvent(string $eventName, array &$params)
     {
@@ -134,10 +146,12 @@ class Dispatcher
     }
 
     /**
-     * @param mixed &$output
+     * Executes all 'after' filters for the specified event, allowing modification of the event output.
      *
-     * @return mixed
-     * @throws Exception
+     * @param string $eventName Name of the event whose post-filters should be run.
+     * @param mixed &$output The output from the event callback, passed by reference and may be modified by filters.
+     * @return mixed The (possibly modified) output after all post-filters have been applied.
+     * @throws Exception If any filter throws an exception during execution.
      */
     protected function runPostFilters(string $eventName, &$output)
     {
@@ -152,12 +166,11 @@ class Dispatcher
         return $output;
     }
 
-    /**
-     * Assigns a callback to an event.
+    /****
+     * Registers a callback function for a specific event name.
      *
-     * @param string $name Event name.
-     * @param callable(): (void|mixed) $callback Callback function.
-     *
+     * @param string $name The event name to associate with the callback.
+     * @param callable $callback The function to execute when the event is dispatched.
      * @return $this
      */
     public function set(string $name, callable $callback): self
@@ -168,11 +181,10 @@ class Dispatcher
     }
 
     /**
-     * Gets an assigned callback.
+     * Retrieves the callback assigned to the specified event name.
      *
-     * @param string $name Event name.
-     *
-     * @return null|(callable(): (void|mixed)) $callback Callback function.
+     * @param string $name The name of the event.
+     * @return callable|null The callback function if assigned, or null if not set.
      */
     public function get(string $name): ?callable
     {
@@ -180,11 +192,10 @@ class Dispatcher
     }
 
     /**
-     * Checks if an event has been set.
+     * Determines whether an event with the given name is registered.
      *
-     * @param string $name Event name.
-     *
-     * @return bool If event exists or doesn't exists.
+     * @param string $name The event name to check.
+     * @return bool True if the event exists; false otherwise.
      */
     public function has(string $name): bool
     {
@@ -192,9 +203,9 @@ class Dispatcher
     }
 
     /**
-     * Clears an event. If no name is given, all events will be removed.
+     * Removes a specific event and its filters, or clears all events and filters if no name is provided.
      *
-     * @param ?string $name Event name.
+     * @param string|null $name The name of the event to remove, or null to clear all events and filters.
      */
     public function clear(?string $name = null): void
     {
@@ -209,12 +220,13 @@ class Dispatcher
     }
 
     /**
-     * Hooks a callback to an event.
+     * Attaches a filter callback to an event, to be executed either before or after the event's main callback.
      *
-     * @param string $name Event name
-     * @param 'before'|'after' $type Filter type.
-     * @param callable(array<int, mixed> &$params, mixed &$output): (void|false)|callable(mixed &$output): (void|false) $callback
+     * The filter type must be 'before' or 'after'. For 'after' filters, callbacks accepting only the output parameter are supported for backward compatibility, but this usage is deprecated.
      *
+     * @param string $name The event name.
+     * @param string $type The filter type, either 'before' or 'after'.
+     * @param callable $callback The filter callback to attach.
      * @return $this
      */
     public function hook(string $name, string $type, callable $callback): self
@@ -243,14 +255,15 @@ class Dispatcher
     }
 
     /**
-     * Executes a chain of method filters.
+     * Executes a sequence of filter callbacks, passing parameters and output by reference.
      *
-     * @param array<int, callable(array<int, mixed> &$params, mixed &$output): (void|false)> $filters
-     * Chain of filters.
-     * @param array<int, mixed> $params Method parameters.
-     * @param mixed $output Method output.
+     * Each filter receives the current parameters and output, and may modify them. If any filter returns false, the chain is stopped.
      *
-     * @throws Exception If an event throws an `Exception` or if `$filters` contains an invalid filter.
+     * @param array $filters List of filter callbacks to execute.
+     * @param array $params Parameters to be passed to each filter, passed by reference.
+     * @param mixed $output Output value to be passed to each filter, passed by reference.
+     *
+     * @throws InvalidArgumentException If any filter is not callable.
      */
     public function filter(array $filters, array &$params, &$output): void
     {
@@ -268,14 +281,14 @@ class Dispatcher
     }
 
     /**
-     * Executes a callback function.
+     * Executes a callback, resolving string representations of class methods if necessary.
      *
-     * @param callable-string|(callable(): mixed)|array{class-string|object, string} $callback
-     * Callback function.
-     * @param array<int, mixed> $params Function parameters.
+     * If the callback is a string containing '->' or '::', it is parsed into a class and method array before invocation.
      *
-     * @return mixed Function results.
-     * @throws Exception If `$callback` also throws an `Exception`.
+     * @param callable|string|array $callback The function, closure, or class method to execute. String representations of class methods (e.g., "Class::method") are supported.
+     * @param array $params Parameters to pass to the callback, passed by reference.
+     * @return mixed The result of the callback execution.
+     * @throws Exception If the callback throws an exception.
      */
     public function execute($callback, array &$params = [])
     {
@@ -290,11 +303,12 @@ class Dispatcher
     }
 
     /**
-     * Parses a string into a class and method.
+     * Splits a string containing a class and method into an array.
      *
-     * @param string $classAndMethod Class and method
+     * Accepts strings in the format "Class::method" or "Class->method" and returns an array with the class and method parts.
      *
-     * @return array{0: class-string|object, 1: string} Class and method
+     * @param string $classAndMethod String containing class and method, separated by '::' or '->'.
+     * @return array{0: class-string|object, 1: string} Array with class (or object) as the first element and method name as the second.
      */
     public function parseStringClassAndMethod(string $classAndMethod): array
     {
@@ -307,29 +321,30 @@ class Dispatcher
         return $classParts;
     }
 
-    /**
-     * Calls a function.
+    /****
+     * Invokes a callable function with the provided parameters.
      *
-     * @param callable $func Name of function to call.
-     * @param array<int, mixed> &$params Function parameters.
+     * This method is deprecated as of version 3.7.0. Use invokeCallable() instead.
      *
-     * @return mixed Function results.
-     * @deprecated 3.7.0 Use invokeCallable instead
+     * @param callable $func The function to invoke.
+     * @param array<int, mixed> &$params Parameters to pass to the function.
+     * @return mixed The result of the function call.
+     * @deprecated 3.7.0 Use invokeCallable instead.
      */
     public function callFunction(callable $func, array &$params = [])
     {
         return $this->invokeCallable($func, $params);
     }
 
-    /**
-     * Invokes a method.
+    /****
+     * Invokes a class method with the given parameters.
      *
-     * @param array{0: class-string|object, 1: string} $func Class method.
-     * @param array<int, mixed> &$params Class method parameters.
+     * This method is deprecated as of version 3.7.0; use invokeCallable() instead.
      *
-     * @return mixed Function results.
-     * @throws TypeError For nonexistent class name.
-     * @deprecated 3.7.0 Use invokeCallable instead.
+     * @param array{0: class-string|object, 1: string} $func Array containing the class (as a string or object) and method name.
+     * @param array<int, mixed> &$params Parameters to pass to the method.
+     * @return mixed The result of the invoked method.
+     * @throws TypeError If the specified class does not exist.
      */
     public function invokeMethod(array $func, array &$params = [])
     {
@@ -337,15 +352,15 @@ class Dispatcher
     }
 
     /**
-     * Invokes a callable (anonymous function or Class->method).
+     * Invokes a callable function or class method, resolving class instances via the container or Engine if necessary.
      *
-     * @param array{0: class-string|object, 1: string}|callable $func Class method.
-     * @param array<int, mixed> &$params Class method parameters.
+     * If the callable is a class method, the class instance is resolved using the container handler if configured, or instantiated with the Engine. Validates the existence of the function, class, and method before invocation.
      *
-     * @return mixed Function results.
-     * @throws TypeError For nonexistent class name.
-     * @throws InvalidArgumentException If the constructor requires parameters.
-     * @version 3.7.0
+     * @param array{0: class-string|object, 1: string}|callable $func The function or class method to invoke.
+     * @param array<int, mixed> &$params Parameters to pass to the callable, passed by reference.
+     * @return mixed The result of the invoked callable.
+     * @throws TypeError If the class does not exist.
+     * @throws InvalidArgumentException If the class constructor requires parameters and cannot be instantiated.
      */
     public function invokeCallable($func, array &$params = [])
     {
@@ -379,12 +394,12 @@ class Dispatcher
     }
 
     /**
-     * Handles invalid callback types.
+     * Validates that a string callback refers to an existing function.
      *
-     * @param callable-string|(callable(): mixed)|array{0: class-string|object, 1: string} $callback
-     * Callback function.
+     * Throws an InvalidArgumentException if the provided string does not correspond to a defined function.
      *
-     * @throws InvalidArgumentException If `$callback` is an invalid type.
+     * @param mixed $callback Callback to validate.
+     * @throws InvalidArgumentException If the callback is a string and the function does not exist.
      */
     protected function verifyValidFunction($callback): void
     {
@@ -395,13 +410,15 @@ class Dispatcher
 
 
     /**
-     * Verifies if the provided class and method are valid callable.
+     * Validates that the specified class and method are callable.
      *
-     * @param class-string|object $class The class name.
-     * @param string $method The method name.
-     * @param object|null $resolvedClass The resolved class.
+     * Throws an exception if the class does not exist, if the method is not found on the class or object, or if a container resolution error occurred.
      *
-     * @throws Exception If the class or method is not found.
+     * @param class-string|object $class The class name or object instance.
+     * @param string $method The method name to validate.
+     * @param object|null $resolvedClass The resolved class instance, if available.
+     *
+     * @throws Exception If the class does not exist, the method is not found, or a container resolution error was encountered.
      */
     protected function verifyValidClassCallable($class, $method, $resolvedClass): void
     {
@@ -429,12 +446,13 @@ class Dispatcher
     }
 
     /**
-     * Resolves the container class.
+     * Attempts to resolve and instantiate a class using the configured container handler.
      *
-     * @param class-string $class Class name.
-     * @param array<int, mixed> &$params Class constructor parameters.
+     * Supports both PSR-11 containers and callable container handlers. Returns the resolved object instance, or null if resolution fails. If an exception occurs during resolution with a callable container, the exception is stored for later retrieval.
      *
-     * @return ?object Class object.
+     * @param string $class The fully qualified class name to resolve.
+     * @param array $params Parameters to pass to the container or constructor.
+     * @return object|null The resolved class instance, or null if not found.
      */
     public function resolveContainerClass(string $class, array &$params)
     {
@@ -468,12 +486,13 @@ class Dispatcher
         return null;
     }
 
-    /**
-     * Checks to see if a container should be used or not.
+    /****
+     * Determines whether the container handler should be used to resolve the given class.
      *
-     * @param string|object $class the class to verify
+     * Returns true if a container handler is set and the class is either a string or an object not in the 'flight' namespace.
      *
-     * @return boolean
+     * @param string|object $class Class name or object to check.
+     * @return bool True if the container should be used; otherwise, false.
      */
     public function mustUseContainer($class): bool
     {
@@ -483,7 +502,11 @@ class Dispatcher
         );
     }
 
-    /** Because this could throw an exception in the middle of an output buffer, */
+    /****
+     * Cleans the output buffer if any levels are active, except for the default PHPUnit buffer.
+     *
+     * This method ensures that any active output buffers are cleared to prevent issues when exceptions are thrown during output buffering. If running under PHPUnit, it preserves the default buffer level.
+     */
     protected function fixOutputBuffering(): void
     {
         // Cause PHPUnit has 1 level of output buffering by default
@@ -493,9 +516,9 @@ class Dispatcher
     }
 
     /**
-     * Resets the object to the initial state.
+     * Clears all registered events and filters, restoring the dispatcher to its initial state.
      *
-     * @return $this
+     * @return $this The dispatcher instance.
      */
     public function reset(): self
     {

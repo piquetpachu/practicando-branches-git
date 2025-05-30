@@ -21,13 +21,9 @@ class PdoWrapper extends PDO
     protected array $connectionMetrics = [];
 
     /**
-     * Constructor for the PdoWrapper class.
+     * Initializes a new PdoWrapper instance with optional application performance metrics tracking.
      *
-     * @param string $dsn The Data Source Name (DSN) for the database connection.
-     * @param string|null $username The username for the database connection.
-     * @param string|null $password The password for the database connection.
-     * @param array<string, mixed>|null $options An array of options for the PDO connection.
-     * @param bool $trackApmQueries Whether to track application performance metrics (APM) for queries.
+     * Establishes a PDO database connection using the provided DSN, credentials, and options. If APM tracking is enabled, extracts and stores connection metadata for performance monitoring.
      */
     public function __construct(?string $dsn = null, ?string $username = '', ?string $password = '', ?array $options = null, bool $trackApmQueries = false)
     {
@@ -39,20 +35,13 @@ class PdoWrapper extends PDO
     }
 
     /**
-     * Use this for INSERTS, UPDATES, or if you plan on using a SELECT in a while loop
+     * Executes a SQL statement with optional parameters and returns the resulting PDOStatement.
      *
-     * Ex: $statement = $db->runQuery("SELECT * FROM table WHERE something = ?", [ $something ]);
-     *      while($row = $statement->fetch()) {
-     *          // ...
-     *      }
+     * Supports INSERT, UPDATE, and SELECT queries, including those with dynamic IN clauses. If application performance monitoring (APM) is enabled, records execution metrics for the query.
      *
-     *  $db->runQuery("INSERT INTO table (name) VALUES (?)", [ $name ]);
-     *  $db->runQuery("UPDATE table SET name = ? WHERE id = ?", [ $name, $id ]);
-     *
-     * @param string $sql       - Ex: "SELECT * FROM table WHERE something = ?"
-     * @param array<int|string,mixed> $params   - Ex: [ $something ]
-     *
-     * @return PDOStatement
+     * @param string $sql The SQL statement to execute, which may include placeholders for parameters.
+     * @param array<int|string, mixed> $params Parameters to bind to the SQL statement placeholders.
+     * @return PDOStatement The executed PDOStatement object.
      */
     public function runQuery(string $sql, array $params = []): PDOStatement
     {
@@ -76,14 +65,13 @@ class PdoWrapper extends PDO
     }
 
     /**
-     * Pulls one field from the query
+     * Retrieves the value of the first field from the first row of a query result.
      *
-     * Ex: $id = $db->fetchField("SELECT id FROM table WHERE something = ?", [ $something ]);
+     * Executes the provided SQL query with optional parameters and returns the value of the first column from the first row, or `false` if no results are found.
      *
-     * @param string $sql   - Ex: "SELECT id FROM table WHERE something = ?"
-     * @param array<int|string,mixed> $params - Ex: [ $something ]
-     *
-     * @return mixed
+     * @param string $sql SQL query to execute.
+     * @param array<int|string,mixed> $params Parameters to bind to the SQL query.
+     * @return mixed The value of the first field in the first row, or `false` if no rows are returned.
      */
     public function fetchField(string $sql, array $params = [])
     {
@@ -93,14 +81,11 @@ class PdoWrapper extends PDO
     }
 
     /**
-     * Pulls one row from the query
+     * Retrieves the first row from the result set of a SQL query as a Collection.
      *
-     * Ex: $row = $db->fetchRow("SELECT * FROM table WHERE something = ?", [ $something ]);
+     * Appends `LIMIT 1` to the query if not already present. Returns an empty Collection if no rows are found.
      *
-     * @param string $sql   - Ex: "SELECT * FROM table WHERE something = ?"
-     * @param array<int|string,mixed> $params - Ex: [ $something ]
-     *
-     * @return Collection
+     * @return Collection The first row of the result set, or an empty Collection if there are no results.
      */
     public function fetchRow(string $sql, array $params = []): Collection
     {
@@ -110,17 +95,13 @@ class PdoWrapper extends PDO
     }
 
     /**
-     * Pulls all rows from the query
+     * Executes a SQL query and returns all result rows as an array of Collection objects.
      *
-     * Ex: $rows = $db->fetchAll("SELECT * FROM table WHERE something = ?", [ $something ]);
-     * foreach($rows as $row) {
-     *      // ...
-     * }
+     * Handles parameterized queries, including dynamic expansion of `IN` clauses. Each row in the result set is wrapped in a Collection for convenient data access. Returns an empty array if no results are found.
      *
-     * @param string $sql   - Ex: "SELECT * FROM table WHERE something = ?"
-     * @param array<int|string,mixed> $params   - Ex: [ $something ]
-     *
-     * @return array<int,Collection>
+     * @param string $sql SQL query to execute.
+     * @param array<int|string,mixed> $params Parameters to bind to the query.
+     * @return array<int,Collection> Array of Collection objects representing each result row.
      */
     public function fetchAll(string $sql, array $params = [])
     {
@@ -152,11 +133,12 @@ class PdoWrapper extends PDO
     }
 
     /**
-     * Pulls the engine, database, and host from the DSN string.
+     * Extracts the database engine, database name, and host from a DSN string.
+     *
+     * Supports parsing for SQLite and other common database engines. For SQLite, the database name is the file name and host is set to 'localhost'. For other engines, extracts the `dbname` and `host` parameters from the DSN.
      *
      * @param string $dsn The Data Source Name (DSN) string.
-     *
-     * @return array<string,string> An associative array containing the engine, database, and host.
+     * @return array<string,string> Associative array with keys: 'engine', 'database', and 'host'.
      */
     protected function pullDataFromDsn(string $dsn): array
     {
@@ -186,12 +168,9 @@ class PdoWrapper extends PDO
     }
 
     /**
-     * Logs the executed queries through the event dispatcher.
+     * Triggers an event to log collected query and connection metrics if APM tracking is enabled.
      *
-     * This method enables logging of all the queries executed by the PDO wrapper.
-     * It can be useful for debugging and monitoring purposes.
-     *
-     * @return void
+     * If application performance monitoring is active and metrics are available, this method dispatches an event containing all recorded query and connection data, then resets the query metrics.
      */
     public function logQueries(): void
     {
@@ -202,15 +181,13 @@ class PdoWrapper extends PDO
     }
 
     /**
-     * Don't worry about this guy. Converts stuff for IN statements
+     * Expands SQL `IN(?)` placeholders to match the number of parameters provided.
      *
-     * Ex: $row = $db->fetchAll("SELECT * FROM table WHERE id = ? AND something IN(?), [ $id, [1,2,3] ]);
-     *      Converts this to "SELECT * FROM table WHERE id = ? AND something IN(?,?,?)"
+     * Converts SQL statements containing `IN(?)` to use the correct number of placeholders based on the corresponding parameter, supporting both arrays and comma-separated strings. Adjusts the SQL and parameters array accordingly for safe execution with PDO.
      *
-     * @param string $sql    the sql statement
-     * @param array<int|string,mixed>  $params the params for the sql statement
-     *
-     * @return array<string,string|array<int|string,mixed>>
+     * @param string $sql The SQL statement, potentially containing `IN(?)` placeholders.
+     * @param array<int|string,mixed> $params The parameters for the SQL statement, where values for `IN(?)` can be arrays or comma-separated strings.
+     * @return array<string,string|array<int|string,mixed>> An array with updated 'sql' and 'params' keys reflecting the expanded placeholders and parameters.
      */
     protected function processInStatementSql(string $sql, array $params = []): array
     {

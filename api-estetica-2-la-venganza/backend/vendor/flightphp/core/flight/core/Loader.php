@@ -45,14 +45,14 @@ class Loader
     protected static array $dirs = [];
 
     /**
-     * Registers a class.
+     * Registers a class or factory closure under a given name with optional constructor parameters and a post-instantiation callback.
      *
-     * @param string $name Registry name
-     * @param class-string<T>|Closure(): T $class Class name or function to instantiate class
-     * @param array<int, mixed> $params Class initialization parameters
-     * @param ?Closure(T $instance): void $callback $callback Function to call after object instantiation
+     * If a shared instance with the same name exists, it is removed from the registry.
      *
-     * @template T of object
+     * @param string $name The unique name to register the class or factory under.
+     * @param string|Closure $class The class name or a closure that returns an instance.
+     * @param array $params Optional parameters to use when instantiating the class or invoking the factory.
+     * @param callable|null $callback Optional callback to execute after instantiation.
      */
     public function register(string $name, $class, array $params = [], ?callable $callback = null): void
     {
@@ -62,9 +62,11 @@ class Loader
     }
 
     /**
-     * Unregisters a class.
+     * Removes a registered class from the loader by its registry name.
      *
-     * @param string $name Registry name
+     * After calling this method, the class will no longer be available for instantiation or retrieval via the loader.
+     *
+     * @param string $name The registry name of the class to remove.
      */
     public function unregister(string $name): void
     {
@@ -72,14 +74,14 @@ class Loader
     }
 
     /**
-     * Loads a registered class.
+     * Returns an instance of a registered class by name, optionally as a shared singleton.
      *
-     * @param string $name   Method name
-     * @param bool   $shared Shared instance
+     * If the class is registered, returns either a shared instance (singleton) or a new instance, depending on the $shared flag. If a callback was registered, it is invoked after instantiation. Returns null if the class is not registered.
      *
-     * @throws Exception
-     *
-     * @return ?object Class instance
+     * @param string $name Name of the registered class or service.
+     * @param bool $shared Whether to return a shared instance (default true).
+     * @return object|null The class instance, or null if not registered.
+     * @throws Exception If instantiation fails.
      */
     public function load(string $name, bool $shared = true): ?object
     {
@@ -112,11 +114,10 @@ class Loader
     }
 
     /**
-     * Gets a single instance of a class.
+     * Returns the shared instance of a registered class by name, or null if no instance exists.
      *
-     * @param string $name Instance name
-     *
-     * @return ?object Class instance
+     * @param string $name The name under which the class was registered.
+     * @return object|null The shared class instance, or null if not instantiated.
      */
     public function getInstance(string $name): ?object
     {
@@ -124,16 +125,13 @@ class Loader
     }
 
     /**
-     * Gets a new instance of a class.
+     * Creates and returns a new instance of a class or from a factory closure, using the provided parameters.
      *
-     * @param class-string<T>|Closure(): class-string<T> $class  Class name or callback function to instantiate class
-     * @param array<int, string>           $params Class initialization parameters
-     *
+     * @param string|Closure $class Class name or a factory closure that returns an object.
+     * @param array $params Parameters to pass to the class constructor or factory closure.
      * @template T of object
-     *
-     * @throws Exception
-     *
-     * @return T Class instance
+     * @throws Exception If instantiation fails.
+     * @return T The newly created class instance.
      */
     public function newInstance($class, array $params = [])
     {
@@ -145,11 +143,12 @@ class Loader
     }
 
     /**
-     * Gets a registered callable
+     * Retrieves the registration details for a given name.
      *
-     * @param string $name Registry name
+     * Returns the class, parameters, and optional callback associated with the specified registry name, or null if not registered.
      *
-     * @return mixed Class information or null if not registered
+     * @param string $name The name under which the class or factory was registered.
+     * @return mixed Registration details array or null if the name is not registered.
      */
     public function get(string $name)
     {
@@ -157,7 +156,7 @@ class Loader
     }
 
     /**
-     * Resets the object to the initial state.
+     * Clears all registered classes and shared instances, restoring the loader to its initial state.
      */
     public function reset(): void
     {
@@ -168,10 +167,10 @@ class Loader
     // Autoloading Functions
 
     /**
-     * Starts/stops autoloader.
+     * Enables or disables the Loader's autoloader and optionally adds directories to the autoload search path.
      *
-     * @param bool  $enabled Enable/disable autoloading
-     * @param string|iterable<int, string> $dirs    Autoload directories
+     * @param bool $enabled Whether to enable or disable autoloading.
+     * @param string|iterable<int, string> $dirs Optional directories to add to the autoload search path.
      */
     public static function autoload(bool $enabled = true, $dirs = []): void
     {
@@ -186,12 +185,12 @@ class Loader
         }
     }
 
-    /**
-     * Autoloads classes.
+    /****
+     * Attempts to autoload a class by searching registered directories for its file.
      *
-     * Classes are not allowed to have underscores in their names.
+     * Converts the class name to a file path using namespace separators and, if enabled, underscores, then includes the file if found in any registered directory.
      *
-     * @param string $class Class name
+     * @param string $class The fully qualified class name to load.
      */
     public static function loadClass(string $class): void
     {
@@ -209,9 +208,11 @@ class Loader
     }
 
     /**
-     * Adds a directory for autoloading classes.
+     * Registers one or more directories to be searched for class files during autoloading.
      *
-     * @param string|iterable<int, string> $dir Directory path
+     * Accepts a single directory path or an iterable of directory paths. Duplicate directories are ignored.
+     *
+     * @param string|iterable<int, string> $dir Directory path or iterable of paths to add.
      */
     public static function addDirectory($dir): void
     {
@@ -227,12 +228,10 @@ class Loader
     }
 
 
-    /**
-     * Sets the value for V2 class loading.
+    /****
+     * Configures whether underscores in class names are converted to directory separators during autoloading.
      *
-     * @param bool $value The value to set for V2 class loading.
-     *
-     * @return void
+     * @param bool $value If true, underscores in class names are treated as directory separators for autoloading; if false, only namespace separators are used.
      */
     public static function setV2ClassLoading(bool $value): void
     {

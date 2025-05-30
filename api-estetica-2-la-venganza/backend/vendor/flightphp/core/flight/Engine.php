@@ -129,6 +129,9 @@ class Engine
     /** If the request has been handled or not. */
     protected bool $requestHandled = false;
 
+    /**
+     * Constructs the Engine instance, initializing the class loader, dispatcher, and framework state.
+     */
     public function __construct()
     {
         $this->loader = new Loader();
@@ -137,13 +140,14 @@ class Engine
     }
 
     /**
-     * Handles calls to class methods.
+     * Dynamically handles calls to unmapped or undefined methods.
      *
-     * @param string $name Method name
-     * @param array<int, mixed> $params Method parameters
+     * Delegates the call to a registered callback if available, or loads a mapped class instance. Throws an exception if the method is not mapped.
      *
-     * @throws Exception
-     * @return mixed Callback results
+     * @param string $name The method name being called.
+     * @param array<int, mixed> $params Arguments to pass to the callback or loader.
+     * @throws Exception If the method is not mapped.
+     * @return mixed The result of the callback execution or the loaded class instance.
      */
     public function __call(string $name, array $params)
     {
@@ -166,7 +170,11 @@ class Engine
     // Core Methods //
     //////////////////
 
-    /** Initializes the framework. */
+    /**
+     * Initializes or resets the framework state, registers core components, sets default configuration, and prepares error handling and startup hooks.
+     *
+     * This method sets up the framework for handling HTTP requests by registering essential services (event dispatcher, request, response, router, view), mapping core methods, and applying default configuration values. If the framework was previously initialized, it resets variables and internal loaders. It also configures error and exception handlers and prepares the response and router according to configuration settings.
+     */
     public function init(): void
     {
         $initialized = $this->initialized;
@@ -230,15 +238,14 @@ class Engine
     }
 
     /**
-     * Custom error handler. Converts errors into exceptions.
+     * Handles PHP errors by converting them to ErrorException if error reporting is enabled for the error.
      *
-     * @param int $errno Error number
-     * @param string $errstr Error string
-     * @param string $errfile Error file name
-     * @param int $errline Error file line number
-     *
-     * @return false
-     * @throws ErrorException
+     * @param int $errno The level of the error raised.
+     * @param string $errstr The error message.
+     * @param string $errfile The filename where the error was raised.
+     * @param int $errline The line number where the error was raised.
+     * @return false Always returns false if the error is not converted to an exception.
+     * @throws ErrorException If the error level is included in error_reporting.
      */
     public function handleError(int $errno, string $errstr, string $errfile, int $errline): bool
     {
@@ -250,9 +257,9 @@ class Engine
     }
 
     /**
-     * Custom exception handler. Logs exceptions.
+     * Handles uncaught exceptions by optionally logging them and invoking the framework's error handler.
      *
-     * @param Throwable $e Thrown exception
+     * @param Throwable $e The uncaught exception to handle.
      */
     public function handleException(Throwable $e): void
     {
@@ -263,25 +270,24 @@ class Engine
         $this->error($e);
     }
 
-    /**
-     * Registers the container handler
+    /****
+     * Registers a container handler for dependency injection.
      *
-     * @param ContainerInterface|callable(class-string<T> $id, array<int|string, mixed> $params): ?T $containerHandler Callback function or PSR-11 Container object that sets the container and how it will inject classes
-     *
-     * @template T of object
+     * The handler can be a PSR-11 container or a callable that resolves class dependencies for route callbacks and middleware.
      */
     public function registerContainerHandler($containerHandler): void
     {
         $this->dispatcher->setContainerHandler($containerHandler);
     }
 
-    /**
-     * Maps a callback to a framework method.
+    /****
+     * Associates a user-defined callback with a framework method name.
      *
-     * @param string $name Method name
-     * @param callable $callback Callback function
+     * Registers a custom callback to be invoked when the specified method name is called, unless the method already exists in the framework. Throws an exception if attempting to override a core framework method.
      *
-     * @throws Exception If trying to map over a framework method
+     * @param string $name The name of the method to map.
+     * @param callable $callback The callback to associate with the method name.
+     * @throws Exception If attempting to override an existing framework method.
      */
     public function map(string $name, callable $callback): void
     {
@@ -293,23 +299,15 @@ class Engine
     }
 
     /**
-     * Registers a class to a framework method.
+     * Registers a class to be instantiated and accessed via a framework method.
      *
-     * # Usage example:
-     * ```
-     * $app = new Engine;
-     * $app->register('user', User::class);
+     * Associates a method name with a class, allowing the method to return an instance of the class when called. Optional constructor parameters and a post-instantiation callback can be provided. Throws an exception if attempting to override an existing framework method.
      *
-     * $app->user(); # <- Return a User instance
-     * ```
-     *
-     * @param string $name Method name
-     * @param class-string<T> $class Class name
-     * @param array<int, mixed> $params Class initialization parameters
-     * @param ?Closure(T $instance): void $callback Function to call after object instantiation
-     *
-     * @template T of object
-     * @throws Exception If trying to map over a framework method
+     * @param string $name The method name to register.
+     * @param string $class The fully qualified class name to instantiate.
+     * @param array $params Optional constructor parameters for the class.
+     * @param callable|null $callback Optional callback to execute after instantiation.
+     * @throws Exception If attempting to override a core framework method.
      */
     public function register(string $name, string $class, array $params = [], ?callable $callback = null): void
     {
@@ -320,17 +318,25 @@ class Engine
         $this->loader->register($name, $class, $params, $callback);
     }
 
-    /** Unregisters a class to a framework method. */
+    /**
+     * Unregisters a class or method from the framework loader.
+     *
+     * Removes the association of a previously registered class or method, making it unavailable for dynamic invocation.
+     *
+     * @param string $methodName The name of the method or class to unregister.
+     */
     public function unregister(string $methodName): void
     {
         $this->loader->unregister($methodName);
     }
 
-    /**
-     * Adds a pre-filter to a method.
+    /****
+     * Registers a callback to be executed before the specified method.
      *
-     * @param string $name Method name
-     * @param Closure(array<int, mixed> &$params, string &$output): (void|false) $callback
+     * The callback acts as a pre-filter and can modify the method's parameters or output before the method is invoked.
+     *
+     * @param string $name The name of the method to attach the pre-filter to.
+     * @param callable $callback The pre-filter callback to execute before the method.
      */
     public function before(string $name, callable $callback): void
     {
@@ -338,10 +344,12 @@ class Engine
     }
 
     /**
-     * Adds a post-filter to a method.
+     * Registers a post-filter callback to be executed after a specified method.
      *
-     * @param string $name Method name
-     * @param Closure(array<int, mixed> &$params, string &$output): (void|false) $callback
+     * The callback receives the method's parameters and output by reference, allowing modification or inspection after the method runs.
+     *
+     * @param string $name The name of the method to attach the post-filter to.
+     * @param callable $callback The callback to execute after the method. Receives parameters and output by reference.
      */
     public function after(string $name, callable $callback): void
     {
@@ -349,11 +357,10 @@ class Engine
     }
 
     /**
-     * Gets a variable.
+     * Retrieves a stored variable by key, or all variables if no key is provided.
      *
-     * @param ?string $key Variable name
-     *
-     * @return mixed Variable value or `null` if `$key` doesn't exists.
+     * @param string|null $key The variable name to retrieve, or null to retrieve all variables.
+     * @return mixed The value of the specified variable, all variables as an array if no key is given, or null if the key does not exist.
      */
     public function get(?string $key = null)
     {
@@ -365,11 +372,12 @@ class Engine
     }
 
     /**
-     * Sets a variable.
+     * Sets one or more variables in the framework's variable store.
      *
-     * @param string|iterable<string, mixed> $key
-     * Variable name as `string` or an iterable of `'varName' => $varValue`
-     * @param mixed $value Ignored if `$key` is an `iterable`
+     * If an iterable is provided as the first argument, each key-value pair is set as a variable. If a string is provided, sets the variable with the given name to the specified value.
+     *
+     * @param string|iterable<string, mixed> $key Variable name as a string, or an iterable of variable names and values.
+     * @param mixed $value Value to assign if setting a single variable; ignored if setting multiple variables.
      */
     public function set($key, $value = null): void
     {
@@ -385,21 +393,20 @@ class Engine
     }
 
     /**
-     * Checks if a variable has been set.
+     * Determines whether a variable with the given key exists in the framework's variable store.
      *
-     * @param string $key Variable name
-     *
-     * @return bool Variable status
+     * @param string $key The name of the variable to check.
+     * @return bool True if the variable is set, false otherwise.
      */
     public function has(string $key): bool
     {
         return isset($this->vars[$key]);
     }
 
-    /**
-     * Unsets a variable. If no key is passed in, clear all variables.
+    /****
+     * Removes a stored variable by key, or clears all variables if no key is provided.
      *
-     * @param ?string $key Variable name, if `$key` isn't provided, it clear all variables.
+     * @param string|null $key The variable name to remove. If null, all variables are cleared.
      */
     public function clear(?string $key = null): void
     {
@@ -412,9 +419,9 @@ class Engine
     }
 
     /**
-     * Adds a path for class autoloading.
+     * Registers a directory to be used for class autoloading.
      *
-     * @param string $dir Directory path
+     * @param string $dir The directory path to add for autoloading classes.
      */
     public function path(string $dir): void
     {
@@ -422,10 +429,13 @@ class Engine
     }
 
     /**
-     * Processes each routes middleware.
+     * Executes all middleware associated with a route for a given event.
      *
-     * @param Route $route The route to process the middleware for.
-     * @param string $eventName If this is the before or after method.
+     * Processes each middleware attached to the route in order (for 'before' events) or in reverse order (for 'after' events). Supports closures, objects with event methods, and class names resolved via container or direct instantiation. If any middleware returns false, processing stops and the function returns true to indicate failure.
+     *
+     * @param Route $route The route whose middleware should be processed.
+     * @param string $eventName The event type, typically 'before' or 'after'.
+     * @return bool True if any middleware returns false (indicating failure), false otherwise.
      */
     protected function processMiddleware(Route $route, string $eventName): bool
     {
@@ -508,9 +518,11 @@ class Engine
     // Extensible Methods //
     ////////////////////////
     /**
-     * Starts the framework.
+     * Starts processing the current HTTP request, handling routing, middleware, and response generation.
      *
-     * @throws Exception
+     * This method manages the full request lifecycle: it initializes or resets request and response objects as needed, matches routes, executes middleware (before and after route handlers), invokes route callbacks, and sends the appropriate HTTP response. It handles streamed routes, output buffering, and special cases such as HEAD requests. If middleware fails, it halts with a 403 response; if no route matches, it sends a 404 or 405 as appropriate.
+     *
+     * @throws Exception If an error occurs during request processing.
      */
     public function _start(): void
     {
@@ -652,9 +664,11 @@ class Engine
     }
 
     /**
-     * Sends an HTTP 500 response for any errors.
+     * Sends a 500 Internal Server Error response with exception details.
      *
-     * @param Throwable $e Thrown exception
+     * Triggers the 'flight.error' event and outputs an HTML error message containing the exception message, code, and stack trace.
+     *
+     * @param Throwable $e The exception to report in the error response.
      */
     public function _error(Throwable $e): void
     {
@@ -685,12 +699,12 @@ class Engine
     }
 
     /**
-     * Stops the framework and outputs the current response.
+     * Sends the current response and halts further processing.
      *
-     * @param ?int $code HTTP status code
+     * If a status code is provided, it sets the response status before sending. Handles output buffering if enabled. Deprecated and will be removed in a future version.
      *
-     * @throws Exception
-     * @deprecated 3.5.3 This method will be removed in v4
+     * @param ?int $code Optional HTTP status code to set before sending the response.
+     * @deprecated 3.5.3 This method will be removed in v4.
      */
     public function _stop(?int $code = null): void
     {
@@ -710,12 +724,13 @@ class Engine
     }
 
     /**
-     * Routes a URL to a callback function.
+     * Registers a route for all HTTP methods with a specified URL pattern and callback.
      *
-     * @param string $pattern URL pattern to match
-     * @param callable|string $callback Callback function
-     * @param bool $pass_route Pass the matching route object to the callback
-     * @param string $alias The alias for the route
+     * @param string $pattern The URL pattern to match.
+     * @param callable|string $callback The callback to execute when the route is matched.
+     * @param bool $pass_route Whether to pass the matched route object to the callback.
+     * @param string $alias Optional alias for the route.
+     * @return Route The registered route object.
      */
     public function _route(string $pattern, $callback, bool $pass_route = false, string $alias = ''): Route
     {
@@ -723,11 +738,13 @@ class Engine
     }
 
     /**
-     * Routes a URL to a callback function.
+     * Groups routes under a common URL pattern with optional middleware.
      *
-     * @param string $pattern URL pattern to match
-     * @param callable $callback Callback function that includes the Router class as first parameter
-     * @param array<int, callable|object> $group_middlewares The middleware to be applied to the route
+     * Registers a group of routes sharing a URL prefix and applies the specified middleware to all routes within the group.
+     *
+     * @param string $pattern URL prefix for the route group.
+     * @param callable $callback Callback that defines the routes within the group.
+     * @param array<int, callable|object> $group_middlewares Middleware to apply to all routes in the group.
      */
     public function _group(string $pattern, callable $callback, array $group_middlewares = []): void
     {
@@ -735,13 +752,15 @@ class Engine
     }
 
     /**
-     * Routes a URL to a callback function.
+     * Registers a POST route with the specified URL pattern and callback.
      *
-     * @param string $pattern URL pattern to match
-     * @param callable|string $callback Callback function or string class->method
-     * @param bool $pass_route Pass the matching route object to the callback
+     * Maps an HTTP POST request matching the given pattern to the provided callback or controller method. Optionally passes the matched route object to the callback and assigns a route alias.
      *
-     * @return Route
+     * @param string $pattern URL pattern to match.
+     * @param callable|string $callback Callback function or controller method reference.
+     * @param bool $pass_route Whether to pass the matched route object to the callback.
+     * @param string $route_alias Optional alias for the route.
+     * @return Route The registered route instance.
      */
     public function _post(string $pattern, $callback, bool $pass_route = false, string $route_alias = ''): Route
     {
@@ -749,27 +768,27 @@ class Engine
     }
 
     /**
-     * Routes a URL to a callback function.
+     * Registers a PUT route with the specified URL pattern and callback.
      *
-     * @param string $pattern URL pattern to match
-     * @param callable|string $callback Callback function or string class->method
-     * @param bool $pass_route Pass the matching route object to the callback
-     *
-     * @return Route
+     * @param string $pattern The URL pattern to match for PUT requests.
+     * @param callable|string $callback The callback to execute when the route is matched.
+     * @param bool $pass_route Whether to pass the matched route object to the callback.
+     * @param string $route_alias Optional alias for the route.
+     * @return Route The registered route object.
      */
     public function _put(string $pattern, $callback, bool $pass_route = false, string $route_alias = ''): Route
     {
         return $this->router()->map('PUT ' . $pattern, $callback, $pass_route, $route_alias);
     }
 
-    /**
-     * Routes a URL to a callback function.
+    /****
+     * Registers a PATCH route with the specified URL pattern and callback.
      *
-     * @param string $pattern URL pattern to match
-     * @param callable|string $callback Callback function or string class->method
-     * @param bool $pass_route Pass the matching route object to the callback
-     *
-     * @return Route
+     * @param string $pattern The URL pattern to match for the PATCH request.
+     * @param callable|string $callback The callback to execute when the route is matched.
+     * @param bool $pass_route Whether to pass the matched route object to the callback.
+     * @param string $route_alias Optional alias for the route.
+     * @return Route The registered route instance.
      */
     public function _patch(string $pattern, $callback, bool $pass_route = false, string $route_alias = ''): Route
     {
@@ -777,13 +796,13 @@ class Engine
     }
 
     /**
-     * Routes a URL to a callback function.
+     * Registers a DELETE route with the specified URL pattern and callback.
      *
-     * @param string $pattern URL pattern to match
-     * @param callable|string $callback Callback function or string class->method
-     * @param bool $pass_route Pass the matching route object to the callback
-     *
-     * @return Route
+     * @param string $pattern The URL pattern to match for DELETE requests.
+     * @param callable|string $callback The callback to execute when the route is matched.
+     * @param bool $pass_route Whether to pass the matched route object to the callback.
+     * @param string $route_alias Optional alias for the route.
+     * @return Route The registered route instance.
      */
     public function _delete(string $pattern, $callback, bool $pass_route = false, string $route_alias = ''): Route
     {
@@ -791,10 +810,11 @@ class Engine
     }
 
     /**
-     * Create a resource controller customizing the methods names mapping.
+     * Registers RESTful resource routes for a controller with customizable method mappings.
      *
-     * @param class-string $controllerClass
-     * @param array<string, string|array<string>> $options
+     * @param string $pattern URL pattern for the resource routes.
+     * @param string $controllerClass Fully qualified controller class name.
+     * @param array $options Optional mapping of HTTP methods or actions to controller methods or custom route names.
      */
     public function _resource(
         string $pattern,
@@ -805,11 +825,13 @@ class Engine
     }
 
     /**
-     * Stops processing and returns a given response.
+     * Immediately sends an HTTP response with the specified status code and message, then optionally terminates script execution.
      *
-     * @param int $code HTTP status code
-     * @param string $message Response message
-     * @param bool $actuallyExit Whether to actually exit the script or just send response
+     * If no Cache-Control header is set, disables caching for the response. Clears any existing response body before sending.
+     *
+     * @param int $code HTTP status code to send.
+     * @param string $message Response body content.
+     * @param bool $actuallyExit If true, terminates script execution after sending the response.
      */
     public function _halt(int $code = 200, string $message = '', bool $actuallyExit = true): void
     {
@@ -827,7 +849,11 @@ class Engine
         }
     }
 
-    /** Sends an HTTP 404 response when a URL is not found. */
+    /**
+     * Sends a 404 Not Found HTTP response with a standard error message.
+     *
+     * This method clears the response body, sets the status code to 404, writes a default "Not Found" message, and sends the response to the client.
+     */
     public function _notFound(): void
     {
         $output = '<h1>404 Not Found</h1><h3>The page you have requested could not be found.</h3>';
@@ -839,10 +865,13 @@ class Engine
             ->send();
     }
 
-    /**
-     * Redirects the current request to another URL.
+    /****
+     * Redirects the client to a specified URL with the given HTTP status code.
      *
-     * @param int $code HTTP status code
+     * If a base URL is configured and the target URL is relative, the base URL is prepended. Triggers the `flight.redirect` event before sending the redirect response.
+     *
+     * @param string $url The destination URL for the redirect.
+     * @param int $code HTTP status code for the redirect (default is 303).
      */
     public function _redirect(string $url, int $code = 303): void
     {
@@ -867,13 +896,15 @@ class Engine
     }
 
     /**
-     * Renders a template.
+     * Renders a template file with optional data and stores or outputs the result.
      *
-     * @param string $file Template file
-     * @param ?array<string, mixed> $data Template data
-     * @param ?string $key View variable name
+     * If a view variable name is provided, the rendered output is stored in the view; otherwise, it is sent to the response. Triggers a view rendered event after rendering.
      *
-     * @throws Exception If template file wasn't found
+     * @param string $file The template file to render.
+     * @param ?array<string, mixed> $data Optional data to pass to the template.
+     * @param ?string $key If provided, stores the rendered output in this view variable instead of outputting.
+     *
+     * @throws Exception If the template file is not found.
      */
     public function _render(string $file, ?array $data = null, ?string $key = null): void
     {
@@ -888,15 +919,17 @@ class Engine
     }
 
     /**
-     * Sends a JSON response.
+     * Sends a JSON response with the specified data and HTTP status code.
      *
-     * @param mixed $data JSON data
-     * @param int $code HTTP status code
-     * @param bool $encode Whether to perform JSON encoding
-     * @param ?string $charset Charset
-     * @param int $option Bitmask Json constant such as JSON_HEX_QUOT
+     * Optionally encodes the data as JSON and sets the Content-Type header to application/json. If output buffering is enabled, the response is sent immediately.
      *
-     * @throws Exception
+     * @param mixed $data The data to send in the JSON response.
+     * @param int $code HTTP status code for the response.
+     * @param bool $encode Whether to encode the data as JSON.
+     * @param string|null $charset Character set for the response.
+     * @param int $option Bitmask of JSON encoding options.
+     *
+     * @throws Exception If JSON encoding fails.
      */
     public function _json(
         $data,
@@ -919,15 +952,16 @@ class Engine
     }
 
     /**
-     * Sends a JSON response and halts execution immediately.
+     * Sends a JSON response with the specified data and immediately halts further execution.
      *
-     * @param mixed $data JSON data
-     * @param int $code HTTP status code
-     * @param bool $encode Whether to perform JSON encoding
-     * @param string $charset Charset
-     * @param int $option Bitmask Json constant such as JSON_HEX_QUOT
+     * The response is sent with the given HTTP status code and optional JSON encoding options.
+     * If output buffering is disabled, the response body is cleared and sent before halting.
      *
-     * @throws Exception
+     * @param mixed $data The data to be returned as JSON.
+     * @param int $code HTTP status code for the response.
+     * @param bool $encode Whether to encode the data as JSON.
+     * @param string $charset Character set for the response.
+     * @param int $option Bitmask for JSON encoding options.
      */
     public function _jsonHalt(
         $data,
@@ -946,16 +980,16 @@ class Engine
     }
 
     /**
-     * Sends a JSONP response.
+     * Sends a JSONP response using the specified callback parameter from the query string.
      *
-     * @param mixed $data JSON data
-     * @param string $param Query parameter that specifies the callback name.
-     * @param int $code HTTP status code
-     * @param bool $encode Whether to perform JSON encoding
-     * @param string $charset Charset
-     * @param int $option Bitmask Json constant such as JSON_HEX_QUOT
+     * Outputs the provided data as a JSONP response, wrapping it in a JavaScript callback function named according to the query parameter. Sets the appropriate content type and HTTP status code. If output buffering is enabled, the response is sent immediately.
      *
-     * @throws Exception
+     * @param mixed $data Data to be encoded as JSON and wrapped in the callback.
+     * @param string $param Name of the query parameter that specifies the callback function name.
+     * @param int $code HTTP status code for the response.
+     * @param bool $encode Whether to encode the data as JSON.
+     * @param string $charset Character set for the response.
+     * @param int $option Bitmask for JSON encoding options.
      */
     public function _jsonp(
         $data,
@@ -978,13 +1012,10 @@ class Engine
     }
 
     /**
-     * Downloads a file
+     * Initiates a file download response for the specified file path.
      *
-     * @param string $filePath The path to the file to download
-     *
-     * @throws Exception If the file cannot be found
-     *
-     * @return void
+     * @param string $filePath Absolute or relative path to the file to be downloaded.
+     * @throws Exception If the file does not exist or cannot be accessed.
      */
     public function _download(string $filePath): void
     {
@@ -992,10 +1023,12 @@ class Engine
     }
 
     /**
-     * Handles ETag HTTP caching.
+     * Sets the ETag header for HTTP caching and handles conditional requests.
      *
-     * @param string $id ETag identifier
-     * @param 'strong'|'weak' $type ETag type
+     * If the provided ETag matches the client's `If-None-Match` header, sends a 304 Not Modified response and halts execution.
+     *
+     * @param string $id ETag identifier.
+     * @param 'strong'|'weak' $type ETag type; use 'weak' for a weak ETag.
      */
     public function _etag(string $id, string $type = 'strong'): void
     {
@@ -1013,9 +1046,11 @@ class Engine
     }
 
     /**
-     * Handles last modified HTTP caching.
+     * Sets the Last-Modified HTTP header and handles conditional requests based on the provided timestamp.
      *
-     * @param int $time Unix timestamp
+     * If the client's `If-Modified-Since` header matches the given timestamp, sends a 304 Not Modified response and halts execution.
+     *
+     * @param int $time Unix timestamp representing the last modification time.
      */
     public function _lastModified(int $time): void
     {
@@ -1030,11 +1065,12 @@ class Engine
         }
     }
 
-    /**
-     * Gets a url from an alias that's supplied.
+    /****
+     * Retrieves the URL associated with a given route alias, substituting any provided parameters.
      *
-     * @param string $alias the route alias.
-     * @param array<string, mixed> $params The params for the route if applicable.
+     * @param string $alias The route alias to resolve.
+     * @param array<string, mixed> $params Optional parameters to include in the generated URL.
+     * @return string The generated URL for the specified alias and parameters.
      */
     public function _getUrl(string $alias, array $params = []): string
     {
@@ -1042,10 +1078,10 @@ class Engine
     }
 
     /**
-     * Adds an event listener.
+     * Registers a callback to be executed when a specific event is triggered.
      *
-     * @param string $eventName The name of the event to listen to
-     * @param callable $callback The callback to execute when the event is triggered
+     * @param string $eventName Name of the event to listen for.
+     * @param callable $callback Function to execute when the event occurs.
      */
     public function _onEvent(string $eventName, callable $callback): void
     {
@@ -1053,10 +1089,10 @@ class Engine
     }
 
     /**
-     * Triggers an event.
+     * Triggers an event and passes arguments to all registered listeners.
      *
-     * @param string $eventName The name of the event to trigger
-     * @param mixed ...$args The arguments to pass to the event listeners
+     * @param string $eventName The name of the event to trigger.
+     * @param mixed ...$args Arguments to pass to the event listeners.
      */
     public function _triggerEvent(string $eventName, ...$args): void
     {

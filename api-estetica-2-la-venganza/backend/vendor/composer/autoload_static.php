@@ -28,6 +28,14 @@ class ComposerStaticInitd61a0cb6fcf6ab3ffe7746c206409094
         'Composer\\InstalledVersions' => __DIR__ . '/..' . '/composer/InstalledVersions.php',
     );
 
+    /**
+     * Returns a closure that initializes a ClassLoader instance with static autoload configuration.
+     *
+     * The returned closure, when invoked, sets the ClassLoader's PSR-4 prefix lengths, directory mappings, and class map
+     * to the static values defined in this class.
+     *
+     * @return \Closure Closure bound to the ClassLoader scope for property initialization.
+     */
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {

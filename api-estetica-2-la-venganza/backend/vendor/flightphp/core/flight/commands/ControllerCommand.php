@@ -10,10 +10,10 @@ use Nette\PhpGenerator\PhpNamespace;
 
 class ControllerCommand extends AbstractBaseCommand
 {
-    /**
-     * Construct
+    /****
+     * Initializes the ControllerCommand with configuration and defines the required controller name argument.
      *
-     * @param array<string,mixed> $config JSON config from .runway-config.json
+     * @param array<string,mixed> $config Configuration settings loaded from .runway-config.json.
      */
     public function __construct(array $config)
     {
@@ -22,9 +22,11 @@ class ControllerCommand extends AbstractBaseCommand
     }
 
     /**
-     * Executes the function
+     * Creates a new controller class file with the specified name in the application's controllers directory.
      *
-     * @return void
+     * If the controller name does not end with "Controller", the suffix is appended automatically. The method generates a PHP class file using the Nette PHP Generator, including a constructor and a protected Engine property, and saves it to the appropriate location. Outputs error messages if the configuration is missing or the file already exists, and creates the target directory if necessary.
+     *
+     * @param string $controller Name of the controller to create (without or with "Controller" suffix).
      */
     public function execute(string $controller)
     {
@@ -76,12 +78,10 @@ class ControllerCommand extends AbstractBaseCommand
     }
 
     /**
-     * Saves the class name to a file
+     * Writes the generated controller class to a PHP file in the application's controllers directory.
      *
-     * @param string    $controllerName  Name of the Controller
-     * @param PhpFile   $file            Class Object from Nette\PhpGenerator
-     *
-     * @return void
+     * @param string $controllerName The name of the controller class to save.
+     * @param PhpFile $file The generated PHP file object representing the controller class.
      */
     protected function persistClass(string $controllerName, PhpFile $file)
     {

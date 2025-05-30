@@ -10,8 +10,15 @@ use TypeError;
 class Key
 {
     /**
-     * @param string|resource|OpenSSLAsymmetricKey|OpenSSLCertificate $keyMaterial
-     * @param string $algorithm
+     * Initializes a cryptographic key with its associated algorithm.
+     *
+     * Validates that the provided key material is a non-empty string, resource, OpenSSLAsymmetricKey, or OpenSSLCertificate, and that the algorithm is a non-empty string.
+     *
+     * @param string|resource|OpenSSLAsymmetricKey|OpenSSLCertificate $keyMaterial The cryptographic key material.
+     * @param string $algorithm The algorithm associated with the key.
+     *
+     * @throws TypeError If the key material is not a valid type.
+     * @throws InvalidArgumentException If the key material or algorithm is empty.
      */
     public function __construct(
         private $keyMaterial,
@@ -36,9 +43,9 @@ class Key
     }
 
     /**
-     * Return the algorithm valid for this key
+     * Returns the algorithm associated with this key.
      *
-     * @return string
+     * @return string The algorithm name.
      */
     public function getAlgorithm(): string
     {
@@ -46,7 +53,9 @@ class Key
     }
 
     /**
-     * @return string|resource|OpenSSLAsymmetricKey|OpenSSLCertificate
+     * Retrieves the cryptographic key material associated with this instance.
+     *
+     * @return string|resource|OpenSSLAsymmetricKey|OpenSSLCertificate The key material, which may be a string, resource, OpenSSLAsymmetricKey, or OpenSSLCertificate.
      */
     public function getKeyMaterial()
     {
