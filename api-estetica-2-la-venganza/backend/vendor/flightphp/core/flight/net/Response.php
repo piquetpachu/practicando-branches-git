@@ -137,13 +137,13 @@ class Response
     protected array $responseBodyCallbacks = [];
 
     /**
-     * Sets the HTTP status of the response.
+     * Gets or sets the HTTP status code for the response.
      *
-     * @param ?int $code HTTP status code.
+     * If called without arguments, returns the current status code. If a code is provided, sets the response status to that code if it is valid.
      *
-     * @throws Exception If invalid status code
-     *
-     * @return int|$this Self reference
+     * @param int|null $code Optional HTTP status code to set.
+     * @return int|$this Current status code if no argument is given, or self for method chaining.
+     * @throws Exception If an invalid status code is provided.
      */
     public function status(?int $code = null)
     {
@@ -161,11 +161,12 @@ class Response
     }
 
     /**
-     * Adds a header to the response.
+     * Sets one or more headers for the HTTP response.
      *
-     * @param array<string, int|string>|string $name  Header name or array of names and values
-     * @param ?string  $value Header value
+     * Accepts either a single header name and value, or an associative array of headers to set multiple at once. Overwrites any existing header with the same name.
      *
+     * @param array<string, int|string>|string $name Header name as a string, or an associative array of header names and values.
+     * @param ?string $value Header value if setting a single header.
      * @return $this
      */
     public function header($name, ?string $value = null): self
@@ -182,11 +183,10 @@ class Response
     }
 
     /**
-     * Gets a single header from the response.
+     * Retrieves the value of a response header by name, case-insensitively.
      *
-     * @param string $name the name of the header
-     *
-     * @return string|null
+     * @param string $name Header name to look up.
+     * @return string|null The header value if set, or null if not present.
      */
     public function getHeader(string $name): ?string
     {
@@ -196,12 +196,13 @@ class Response
         return $headers[strtolower($name)] ?? null;
     }
 
-    /**
-     * Alias of Response->header(). Adds a header to the response.
+    /****
+     * Adds a header or multiple headers to the response.
      *
-     * @param array<string, int|string>|string $name  Header name or array of names and values
-     * @param ?string  $value Header value
+     * This method is an alias of `header()`. It can be used to add a single header by name and value, or multiple headers by passing an associative array.
      *
+     * @param array<string, int|string>|string $name Header name as a string, or an associative array of header names and values.
+     * @param ?string $value Header value if setting a single header.
      * @return $this
      */
     public function setHeader($name, ?string $value): self
@@ -210,9 +211,9 @@ class Response
     }
 
     /**
-     * Returns the headers from the response.
+     * Retrieves all HTTP headers set for the response.
      *
-     * @return array<string, int|string|array<int, string>>
+     * @return array<string, int|string|array<int, string>> Associative array of header names and their values.
      */
     public function headers(): array
     {
@@ -220,22 +221,21 @@ class Response
     }
 
     /**
-     * Alias for Response->headers(). Returns the headers from the response.
+     * Returns all headers set in the response.
      *
-     * @return array<string, int|string|array<int, string>>
+     * @return array<string, int|string|array<int, string>> Associative array of response headers.
      */
     public function getHeaders(): array
     {
         return $this->headers();
     }
 
-    /**
-     * Writes content to the response body.
+    /****
+     * Appends content to the response body, or overwrites it if specified.
      *
-     * @param string $str Response content
-     * @param bool $overwrite Overwrite the response body
-     *
-     * @return $this Self reference
+     * @param string $str The content to add to the response body.
+     * @param bool $overwrite If true, replaces the existing body content before writing.
+     * @return $this
      */
     public function write(string $str, bool $overwrite = false): self
     {
@@ -249,9 +249,9 @@ class Response
     }
 
     /**
-     * Clears the response body.
+     * Removes all content from the response body.
      *
-     * @return $this Self reference
+     * @return $this The current Response instance for method chaining.
      */
     public function clearBody(): self
     {
@@ -260,9 +260,9 @@ class Response
     }
 
     /**
-     * Clears the response.
+     * Resets the response to its default state, clearing status, headers, body, and output buffer if applicable.
      *
-     * @return $this Self reference
+     * @return $this
      */
     public function clear(): self
     {
@@ -279,11 +279,12 @@ class Response
     }
 
     /**
-     * Sets caching headers for the response.
+     * Sets HTTP caching headers based on the provided expiration time.
      *
-     * @param int|string|false $expires Expiration time as time() or as strtotime() string value
+     * If $expires is false or 0, disables caching by setting appropriate headers. Otherwise, sets the Expires and Cache-Control headers to enable caching until the specified time.
      *
-     * @return $this Self reference
+     * @param int|string|false $expires Expiration time as a Unix timestamp, a string parseable by strtotime(), or false/0 to disable caching.
+     * @return $this
      */
     public function cache($expires): self
     {
@@ -305,9 +306,11 @@ class Response
     }
 
     /**
-     * Sends HTTP headers.
+     * Sends the HTTP status line and all response headers to the client.
      *
-     * @return $this Self reference
+     * Handles both CGI and non-CGI environments, includes the Content-Length header if enabled, and sends all custom headers set on the response.
+     *
+     * @return $this Self reference.
      */
     public function sendHeaders(): self
     {
@@ -360,18 +363,12 @@ class Response
     }
 
     /**
-     * Sets a real header. Mostly used for test mocking.
+     * Sends a raw HTTP header string using PHP's header() function.
      *
-     * @param string $header_string The header string you would pass to header()
-     * @param bool $replace The optional replace parameter indicates whether the
-     * header should replace a previous similar header, or add a second header of
-     * the same type. By default it will replace, but if you pass in false as the
-     * second argument you can force multiple headers of the same type.
-     * @param int $response_code The response code to send
-     *
+     * @param string $header_string The complete header string to send.
+     * @param bool $replace Whether to replace a previous similar header (default true).
+     * @param int $response_code Optional HTTP response code to send.
      * @return self
-     *
-     * @codeCoverageIgnore
      */
     public function setRealHeader(string $header_string, bool $replace = true, int $response_code = 0): self
     {
@@ -380,7 +377,11 @@ class Response
     }
 
     /**
-     * Gets the content length.
+     * Returns the byte length of the response body.
+     *
+     * Uses `mb_strlen` with 'latin1' encoding if the `mbstring` extension is available; otherwise, falls back to `strlen`.
+     *
+     * @return int The length of the response body in bytes.
      */
     public function getContentLength(): int
     {
@@ -390,17 +391,19 @@ class Response
     }
 
     /**
-     * Gets the response body
+     * Returns the current response body as a string.
      *
-     * @return string
+     * @return string The response body content.
      */
     public function getBody(): string
     {
         return $this->body;
     }
 
-    /**
-     * Gets whether response body was sent.
+    /****
+     * Returns whether the response has already been sent.
+     *
+     * @return bool True if the response has been sent, false otherwise.
      */
     public function sent(): bool
     {
@@ -408,7 +411,7 @@ class Response
     }
 
     /**
-     * Marks the response as sent.
+     * Sets the response as sent to prevent further modifications or output.
      */
     public function markAsSent(): void
     {
@@ -416,7 +419,9 @@ class Response
     }
 
     /**
-     * Sends a HTTP response.
+     * Sends the HTTP response, including headers and body, and triggers the response sent event.
+     *
+     * If output buffering is enabled, clears the output buffer before sending. Processes response body callbacks if legacy buffering is off. Marks the response as sent and triggers the 'flight.response.sent' event with timing information.
      */
     public function send(): void
     {
@@ -443,24 +448,22 @@ class Response
         EventDispatcher::getInstance()->trigger('flight.response.sent', $this, microtime(true) - $start);
     }
 
-    /**
-     * Headers have been sent
+    /****
+     * Checks if HTTP headers have already been sent.
      *
-     * @return bool
-     * @codeCoverageIgnore
+     * @return bool True if headers have been sent, false otherwise.
      */
     public function headersSent(): bool
     {
         return headers_sent();
     }
 
-    /**
-     * Adds a callback to process the response body before it's sent. These are processed in the order
-     * they are added
+    /****
+     * Registers a callback to modify the response body before it is sent.
      *
-     * @param callable $callback The callback to process the response body
+     * Callbacks are executed in the order they are added, allowing for sequential processing of the response body.
      *
-     * @return void
+     * @param callable $callback A function that receives and returns the response body string.
      */
     public function addResponseBodyCallback(callable $callback): void
     {
@@ -468,9 +471,9 @@ class Response
     }
 
     /**
-     * Cycles through the response body callbacks and processes them in order
+     * Applies all registered response body callbacks to the response body in sequence.
      *
-     * @return void
+     * Each callback receives the current body content and its return value replaces the body for the next callback.
      */
     protected function processResponseCallbacks(): void
     {
@@ -480,11 +483,12 @@ class Response
     }
 
     /**
-     * Downloads a file.
+     * Sends the specified file as a downloadable response to the client.
      *
-     * @param string $filePath The path to the file to be downloaded.
+     * Sets appropriate headers for file transfer, outputs the file content, and terminates execution unless running under PHPUnit testing.
      *
-     * @return void
+     * @param string $filePath Absolute or relative path to the file to be downloaded.
+     * @throws Exception If the file does not exist.
      */
     public function downloadFile(string $filePath): void
     {

@@ -102,11 +102,10 @@ class Flight
     /** Framework engine. */
     private static Engine $engine;
 
-    /**
-     * Don't allow object instantiation
+    /****
+     * Prevents instantiation of the Flight class.
      *
-     * @codeCoverageIgnore
-     * @return void
+     * This private constructor ensures the Flight class cannot be instantiated, enforcing its use as a static facade.
      */
     private function __construct()
     {
@@ -114,10 +113,9 @@ class Flight
     }
 
     /**
-     * Forbid cloning the class
+     * Prevents cloning of the Flight class instance.
      *
-     * @codeCoverageIgnore
-     * @return void
+     * This method is private to ensure the singleton pattern by disallowing object cloning.
      */
     private function __clone()
     {
@@ -125,29 +123,36 @@ class Flight
     }
 
     /**
-     * Handles calls to static methods.
+     * Forwards static method calls on the Flight facade to the underlying Engine instance.
      *
-     * @param string $name Method name
-     * @param array<int, mixed> $params Method parameters
+     * Invokes the corresponding method on the singleton Engine with the provided parameters.
      *
-     * @return mixed Callback results
-     * @throws Exception
+     * @param string $name The name of the method to call on the Engine.
+     * @param array<int, mixed> $params Arguments to pass to the Engine method.
+     * @return mixed The result of the Engine method call.
+     * @throws Exception If the method does not exist or invocation fails.
      */
     public static function __callStatic(string $name, array $params)
     {
         return self::app()->{$name}(...$params);
     }
 
-    /** @return Engine Application instance */
+    /**
+     * Returns the singleton instance of the application engine.
+     *
+     * If the engine instance does not exist, it is created.
+     *
+     * @return Engine The shared application engine instance.
+     */
     public static function app(): Engine
     {
         return self::$engine ?? self::$engine = new Engine();
     }
 
-    /**
-     * Set the engine instance
+    /****
+     * Replaces the current engine instance with the provided Engine.
      *
-     * @param Engine $engine Vroom vroom!
+     * @param Engine $engine The new Engine instance to use.
      */
     public static function setEngine(Engine $engine): void
     {

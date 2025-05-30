@@ -38,19 +38,16 @@ class JWK
     ];
 
     /**
-     * Parse a set of JWK keys
+     * Parses a JSON Web Key Set (JWK Set) and returns an associative array of key IDs to Key objects.
      *
-     * @param array<mixed> $jwks The JSON Web Key Set as an associative array
-     * @param string       $defaultAlg The algorithm for the Key object if "alg" is not set in the
-     *                                 JSON Web Key Set
+     * Validates the presence and non-emptiness of the "keys" member in the JWK Set. Each key is parsed using `parseKey`, and only supported keys are included in the result. Throws exceptions for invalid input or if no supported keys are found.
      *
-     * @return array<string, Key> An associative array of key IDs (kid) to Key objects
-     *
-     * @throws InvalidArgumentException     Provided JWK Set is empty
-     * @throws UnexpectedValueException     Provided JWK Set was invalid
-     * @throws DomainException              OpenSSL failure
-     *
-     * @uses parseKey
+     * @param array $jwks The JWK Set as an associative array.
+     * @param string|null $defaultAlg Optional default algorithm to use if a key does not specify "alg".
+     * @return array<string, Key> Associative array mapping key IDs to Key objects.
+     * @throws InvalidArgumentException If the JWK Set is empty.
+     * @throws UnexpectedValueException If the JWK Set is missing required members or contains no supported keys.
+     * @throws DomainException If an OpenSSL error occurs during key parsing.
      */
     public static function parseKeySet(array $jwks, ?string $defaultAlg = null): array
     {
@@ -79,19 +76,17 @@ class JWK
     }
 
     /**
-     * Parse a JWK key
+     * Parses an individual JSON Web Key (JWK) and returns a corresponding Key object.
      *
-     * @param array<mixed> $jwk An individual JWK
-     * @param string       $defaultAlg The algorithm for the Key object if "alg" is not set in the
-     *                                 JSON Web Key Set
+     * Supports RSA, EC (Elliptic Curve), OKP (Octet Key Pair), and symmetric ("oct") key types. Validates required parameters for each key type and rejects private keys. Converts key material to appropriate formats as needed.
      *
-     * @return Key The key object for the JWK
+     * @param array<mixed> $jwk The JWK associative array to parse.
+     * @param string|null $defaultAlg Algorithm to use if the JWK does not specify "alg".
+     * @return Key|null The resulting Key object, or null if the key type is unsupported.
      *
-     * @throws InvalidArgumentException     Provided JWK is empty
-     * @throws UnexpectedValueException     Provided JWK was invalid
-     * @throws DomainException              OpenSSL failure
-     *
-     * @uses createPemFromModulusAndExponent
+     * @throws InvalidArgumentException If the JWK is empty.
+     * @throws UnexpectedValueException If required parameters are missing or the JWK is invalid.
+     * @throws DomainException If OpenSSL operations fail or an unsupported curve/subtype is encountered.
      */
     public static function parseKey(array $jwk, ?string $defaultAlg = null): ?Key
     {
@@ -186,13 +181,12 @@ class JWK
     }
 
     /**
-     * Converts the EC JWK values to pem format.
+     * Converts EC JWK curve name and base64url-encoded x and y coordinates into a PEM-formatted public key.
      *
-     * @param   string  $crv The EC curve (only P-256 & P-384 is supported)
-     * @param   string  $x   The EC x-coordinate
-     * @param   string  $y   The EC y-coordinate
-     *
-     * @return  string
+     * @param string $crv The elliptic curve name (e.g., 'P-256', 'P-384', or 'secp256k1').
+     * @param string $x Base64url-encoded x-coordinate of the public key.
+     * @param string $y Base64url-encoded y-coordinate of the public key.
+     * @return string PEM-formatted EC public key.
      */
     private static function createPemFromCrvAndXYCoordinates(string $crv, string $x, string $y): string
     {
@@ -225,14 +219,11 @@ class JWK
     }
 
     /**
-     * Create a public key represented in PEM format from RSA modulus and exponent information
+     * Generates a PEM-formatted RSA public key from base64url-encoded modulus and exponent values.
      *
-     * @param string $n The RSA modulus encoded in Base64
-     * @param string $e The RSA exponent encoded in Base64
-     *
-     * @return string The RSA public key represented in PEM format
-     *
-     * @uses encodeLength
+     * @param string $n The RSA modulus, base64url-encoded.
+     * @param string $e The RSA public exponent, base64url-encoded.
+     * @return string The PEM-formatted RSA public key.
      */
     private static function createPemFromModulusAndExponent(
         string $n,
@@ -269,14 +260,13 @@ class JWK
             '-----END PUBLIC KEY-----';
     }
 
-    /**
-     * DER-encode the length
+    /****
+     * Encodes an integer length value using DER (Distinguished Encoding Rules) ASN.1 format.
      *
-     * DER supports lengths up to (2**8)**127, however, we'll only support lengths up to (2**8)**4.  See
-     * {@link http://itu.int/ITU-T/studygroups/com17/languages/X.690-0207.pdf#p=13 X.690 paragraph 8.1.3} for more information.
+     * Supports encoding lengths up to 4 bytes, as required for DER-encoded structures.
      *
-     * @param int $length
-     * @return string
+     * @param int $length The length value to encode.
+     * @return string The DER-encoded length as a binary string.
      */
     private static function encodeLength(int $length): string
     {
@@ -289,13 +279,14 @@ class JWK
         return \pack('Ca*', 0x80 | \strlen($temp), $temp);
     }
 
-    /**
-     * Encodes a value into a DER object.
-     * Also defined in Firebase\JWT\JWT
+    /****
+     * Encodes a value as a DER object with the specified ASN.1 tag.
      *
-     * @param   int     $type DER tag
-     * @param   string  $value the value to encode
-     * @return  string  the encoded object
+     * Adds the constructed bit for sequences and encodes the type, length, and value according to DER rules.
+     *
+     * @param int $type ASN.1 tag type.
+     * @param string $value Value to encode.
+     * @return string DER-encoded binary string.
      */
     private static function encodeDER(int $type, string $value): string
     {
@@ -314,10 +305,10 @@ class JWK
     }
 
     /**
-     * Encodes a string into a DER-encoded OID.
+     * Encodes a dotted-decimal object identifier (OID) string into its binary DER representation.
      *
-     * @param   string $oid the OID string
-     * @return  string the binary DER-encoded OID
+     * @param string $oid Dotted-decimal OID string (e.g., "1.2.840.113549").
+     * @return string DER-encoded binary representation of the OID.
      */
     private static function encodeOID(string $oid): string
     {

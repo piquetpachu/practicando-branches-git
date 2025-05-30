@@ -137,9 +137,11 @@ class Request
     public string $body = '';
 
     /**
-     * Constructor.
+     * Initializes a new Request object with HTTP request data.
      *
-     * @param array<string, mixed> $config Request configuration
+     * If no configuration array is provided, populates properties from PHP superglobals and server variables, including URL, method, headers, parameters, cookies, files, and client metadata.
+     *
+     * @param array<string, mixed> $config Optional request configuration to override default values.
      */
     public function __construct(array $config = [])
     {
@@ -171,11 +173,12 @@ class Request
     }
 
     /**
-     * Initialize request properties.
+     * Initializes the request object with provided properties and normalizes request data.
      *
-     * @param array<string, mixed> $properties Array of request properties
+     * Sets request properties from the given array, adjusts the URL relative to the base path, merges URL query parameters into the query collection, and parses the request body for JSON or URL-encoded data as appropriate for the HTTP method.
      *
-     * @return self
+     * @param array<string, mixed> $properties Associative array of request properties to set.
+     * @return self The initialized request instance.
      */
     public function init(array $properties = []): self
     {
@@ -224,10 +227,12 @@ class Request
         return $this;
     }
 
-    /**
-     * Gets the body of the request.
+    /****
+     * Returns the raw HTTP request body.
      *
-     * @return string Raw HTTP request body
+     * For POST, PUT, DELETE, and PATCH requests, reads the body from the input stream if not already cached.
+     *
+     * @return string The raw HTTP request body.
      */
     public function getBody(): string
     {
@@ -249,7 +254,11 @@ class Request
     }
 
     /**
-     * Gets the request method.
+     * Returns the HTTP request method, supporting overrides via headers or parameters.
+     *
+     * Checks for the `HTTP_X_HTTP_METHOD_OVERRIDE` header or `_method` request parameter to allow method overriding, falling back to the `REQUEST_METHOD` server variable.
+     *
+     * @return string The HTTP method in uppercase (e.g., 'GET', 'POST', 'PUT').
      */
     public static function getMethod(): string
     {
@@ -264,10 +273,12 @@ class Request
         return strtoupper($method);
     }
 
-    /**
-     * Gets the real remote IP address.
+    /****
+     * Attempts to determine the client's real public IP address by checking common proxy headers.
      *
-     * @return string IP address
+     * Checks various HTTP headers that may contain the originating IP address when the request passes through proxies or load balancers. Returns the first valid public IP found, or an empty string if none are available.
+     *
+     * @return string The detected public IP address, or an empty string if not found.
      */
     public static function getProxyIpAddress(): string
     {
@@ -295,12 +306,11 @@ class Request
     }
 
     /**
-     * Gets a variable from $_SERVER using $default if not provided.
+     * Retrieves a value from the $_SERVER superglobal, returning a default if the variable is not set.
      *
-     * @param string $var     Variable name
-     * @param mixed  $default Default value to substitute
-     *
-     * @return mixed Server variable value
+     * @param string $var Name of the server variable to retrieve.
+     * @param mixed $default Value to return if the server variable is not set.
+     * @return mixed The value of the server variable, or the default if not present.
      */
     public static function getVar(string $var, $default = '')
     {
@@ -308,12 +318,13 @@ class Request
     }
 
     /**
-     * This will pull a header from the request.
+     * Retrieves the value of a specific HTTP header from the request.
      *
-     * @param string $header  Header name. Can be caps, lowercase, or mixed.
-     * @param string $default Default value if the header does not exist
+     * Header names are case-insensitive and may be provided in any format. If the header is not present, the specified default value is returned.
      *
-     * @return string
+     * @param string $header Name of the HTTP header.
+     * @param string $default Value to return if the header is not found.
+     * @return string The header value or the default if not present.
      */
     public static function getHeader(string $header, $default = ''): string
     {
@@ -322,9 +333,9 @@ class Request
     }
 
     /**
-     * Gets all the request headers
+     * Retrieves all HTTP request headers as an associative array.
      *
-     * @return array<string, string|int>
+     * @return array<string, string|int> An array of header names and their corresponding values.
      */
     public static function getHeaders(): array
     {
@@ -339,13 +350,14 @@ class Request
         return $headers;
     }
 
-    /**
-     * Alias of Request->getHeader(). Gets a single header.
+    /****
+     * Retrieves the value of a specific HTTP header.
      *
-     * @param string $header  Header name. Can be caps, lowercase, or mixed.
-     * @param string $default Default value if the header does not exist
+     * This is an alias for getHeader(). Returns the header value if present, or the provided default if not found.
      *
-     * @return string
+     * @param string $header Name of the HTTP header (case-insensitive).
+     * @param string $default Value to return if the header is not set.
+     * @return string The header value or the default.
      */
     public static function header(string $header, $default = '')
     {
@@ -353,19 +365,19 @@ class Request
     }
 
     /**
-     * Alias of Request->getHeaders(). Gets all the request headers
+     * Returns all HTTP request headers as an associative array.
      *
-     * @return array<string, string|int>
+     * @return array<string, string|int> Associative array of header names and their values.
      */
     public static function headers(): array
     {
         return self::getHeaders();
     }
 
-    /**
-     * Gets the full request URL.
+    /****
+     * Returns the complete request URL, including scheme, host, and path.
      *
-     * @return string URL
+     * @return string The full URL of the current HTTP request.
      */
     public function getFullUrl(): string
     {
@@ -373,21 +385,20 @@ class Request
     }
 
     /**
-     * Grabs the scheme and host. Does not end with a /
+     * Returns the base URL consisting of the scheme and host, without a trailing slash.
      *
-     * @return string
+     * @return string The base URL (e.g., "https://example.com").
      */
     public function getBaseUrl(): string
     {
         return $this->scheme . '://' . $this->host;
     }
 
-    /**
-     * Parse query parameters from a URL.
+    /****
+     * Extracts and parses the query string from a URL into an associative array.
      *
-     * @param string $url URL string
-     *
-     * @return array<string, int|string|array<int|string, int|string>>
+     * @param string $url The URL containing the query string to parse.
+     * @return array<string, int|string|array<int|string, int|string>> Associative array of query parameters.
      */
     public static function parseQuery(string $url): array
     {
@@ -402,9 +413,11 @@ class Request
     }
 
     /**
-     * Gets the URL Scheme
+     * Determines the URL scheme ('http' or 'https') for the current request.
      *
-     * @return string 'http'|'https'
+     * Checks various server variables to detect if the request was made over HTTPS, including proxy and front-end headers.
+     *
+     * @return string Returns 'https' if the request is secure, otherwise 'http'.
      */
     public static function getScheme(): string
     {
@@ -424,9 +437,9 @@ class Request
     }
 
     /**
-     * Retrieves the array of uploaded files.
+     * Returns uploaded files as `UploadedFile` instances, handling both single and multiple file uploads.
      *
-     * @return array<string, array<string,UploadedFile>|array<string,array<string,UploadedFile>>> The array of uploaded files.
+     * @return array<string, UploadedFile|array<UploadedFile>> An associative array where each key corresponds to an input field name and the value is either an `UploadedFile` instance or an array of `UploadedFile` instances for multiple uploads.
      */
     public function getUploadedFiles(): array
     {
@@ -453,11 +466,13 @@ class Request
     }
 
     /**
-     * Re-arranges the files in the given files collection.
+     * Normalizes the structure of uploaded files from a Collection to a consistent array format.
      *
-     * @param Collection $filesCollection The collection of files to be re-arranged.
+     * Converts the nested structure of PHP's uploaded files array into a flat, indexed array for each file input,
+     * supporting both single and multiple file uploads.
      *
-     * @return array<string, array<int, array<string, mixed>>> The re-arranged files collection.
+     * @param Collection $filesCollection Collection of uploaded files, typically from $_FILES.
+     * @return array<string, array<int, array<string, mixed>>> An array where each file input name maps to an array of file attribute arrays.
      */
     protected function reArrayFiles(Collection $filesCollection): array
     {

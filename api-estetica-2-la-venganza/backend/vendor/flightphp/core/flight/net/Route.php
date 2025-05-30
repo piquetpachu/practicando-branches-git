@@ -78,12 +78,13 @@ class Route
     public array $streamed_headers = [];
 
     /**
-     * Constructor.
+     * Initializes a new Route instance with a URL pattern, callback, allowed HTTP methods, and optional alias.
      *
-     * @param string $pattern  URL pattern
-     * @param callable|string  $callback Callback function
-     * @param array<int, string>  $methods  HTTP methods
-     * @param bool   $pass     Pass self in callback parameters
+     * @param string $pattern The URL pattern to match for this route.
+     * @param callable|string $callback The handler to invoke when the route matches.
+     * @param array<int, string> $methods List of allowed HTTP methods for this route.
+     * @param bool $pass Whether to pass the Route instance to the callback.
+     * @param string $alias Optional alias for identifying the route.
      */
     public function __construct(string $pattern, $callback, array $methods, bool $pass, string $alias = '')
     {
@@ -95,12 +96,13 @@ class Route
     }
 
     /**
-     * Checks if a URL matches the route pattern. Also parses named parameters in the URL.
+     * Determines if the given URL matches the route's pattern, extracting named parameters and wildcard segments.
      *
-     * @param string $url            Requested URL (original format, not URL decoded)
-     * @param bool   $caseSensitive Case sensitive matching
+     * Supports exact matches, wildcards, and named parameters, with optional case sensitivity. Extracted parameters are stored in the route's `params` property, and wildcard segments in `splat`.
      *
-     * @return bool Match status
+     * @param string $url The requested URL in its original (not URL-decoded) form.
+     * @param bool $caseSensitive Whether matching should be case sensitive.
+     * @return bool True if the URL matches the route pattern; otherwise, false.
      */
     public function matchUrl(string $url, bool $caseSensitive = false): bool
     {
@@ -177,20 +179,24 @@ class Route
         return true;
     }
 
-    /**
-     * Checks if an HTTP method matches the route methods.
+    /****
+     * Determines if the given HTTP method is allowed for this route.
      *
-     * @param string $method HTTP method
+     * Returns true if the method matches one of the route's allowed methods or if the wildcard '*' is present.
      *
-     * @return bool Match status
+     * @param string $method The HTTP method to check.
+     * @return bool True if the method is allowed; otherwise, false.
      */
     public function matchMethod(string $method): bool
     {
         return \count(array_intersect([$method, '*'], $this->methods)) > 0;
     }
 
-    /**
-     * Checks if an alias matches the route alias.
+    /****
+     * Determines whether the provided alias matches the route's alias.
+     *
+     * @param string $alias The alias to compare.
+     * @return bool True if the alias matches; otherwise, false.
      */
     public function matchAlias(string $alias): bool
     {
@@ -198,9 +204,12 @@ class Route
     }
 
     /**
-     * Hydrates the route url with the given parameters
+     * Generates a URL by substituting named parameters into the route's pattern.
      *
-     * @param array<string, mixed> $params the parameters to pass to the route
+     * Replaces parameter placeholders in the route pattern with corresponding values from the provided array. Handles optional parameters and removes trailing slashes from the resulting URL.
+     *
+     * @param array<string, mixed> $params Associative array of parameter values to insert into the URL pattern.
+     * @return string The hydrated URL with parameters substituted.
      */
     public function hydrateUrl(array $params = []): string
     {
@@ -219,10 +228,11 @@ class Route
         return $url;
     }
 
-    /**
-     * Sets the route alias
+    /****
+     * Assigns an alias to the route for identification or lookup.
      *
-     * @return $this
+     * @param string $alias The alias to assign to the route.
+     * @return self The route instance for method chaining.
      */
     public function setAlias(string $alias): self
     {
@@ -231,9 +241,12 @@ class Route
     }
 
     /**
-     * Sets the route middleware
+     * Adds middleware to the route.
      *
-     * @param array<int, callable|string>|callable|string $middleware
+     * Accepts a single middleware or an array of middleware, and appends them to the route's middleware stack.
+     *
+     * @param array<int, callable|string>|callable|string $middleware Middleware to add.
+     * @return self The route instance for method chaining.
      */
     public function addMiddleware($middleware): self
     {
@@ -246,9 +259,9 @@ class Route
     }
 
     /**
-     * If the response should be streamed
+     * Marks the route's response to be streamed.
      *
-     * @return self
+     * @return self The current route instance for method chaining.
      */
     public function stream(): self
     {
@@ -256,11 +269,10 @@ class Route
         return $this;
     }
 
-    /**
-     * This will allow the response for this route to be streamed.
+    /****
+     * Marks the route's response as streamed and sets headers to send before streaming.
      *
-     * @param array<string, mixed> $headers a key value of headers to set before the stream starts.
-     *
+     * @param array<string, mixed> $headers Headers to send before the streamed response.
      * @return $this
      */
     public function streamWithHeaders(array $headers): self

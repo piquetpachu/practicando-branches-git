@@ -65,33 +65,21 @@ class JWT
         'EdDSA' => ['sodium_crypto', 'EdDSA'],
     ];
 
-    /**
-     * Decodes a JWT string into a PHP object.
+    /****
+     * Decodes a JWT string, verifies its signature and claims, and returns the payload as a PHP object.
      *
-     * @param string                 $jwt            The JWT
-     * @param Key|ArrayAccess<string,Key>|array<string,Key> $keyOrKeyArray  The Key or associative array of key IDs
-     *                                                                      (kid) to Key objects.
-     *                                                                      If the algorithm used is asymmetric, this is
-     *                                                                      the public key.
-     *                                                                      Each Key object contains an algorithm and
-     *                                                                      matching key.
-     *                                                                      Supported algorithms are 'ES384','ES256',
-     *                                                                      'HS256', 'HS384', 'HS512', 'RS256', 'RS384'
-     *                                                                      and 'RS512'.
-     * @param stdClass               $headers                               Optional. Populates stdClass with headers.
+     * Validates the JWT structure, decodes and parses the header and payload, checks the algorithm and key, verifies the signature, and enforces 'nbf', 'iat', and 'exp' claims with optional leeway. Throws exceptions for malformed tokens, invalid signatures, unsupported algorithms, or invalid time-based claims.
      *
-     * @return stdClass The JWT's payload as a PHP object
-     *
-     * @throws InvalidArgumentException     Provided key/key-array was empty or malformed
-     * @throws DomainException              Provided JWT is malformed
-     * @throws UnexpectedValueException     Provided JWT was invalid
-     * @throws SignatureInvalidException    Provided JWT was invalid because the signature verification failed
-     * @throws BeforeValidException         Provided JWT is trying to be used before it's eligible as defined by 'nbf'
-     * @throws BeforeValidException         Provided JWT is trying to be used before it's been created as defined by 'iat'
-     * @throws ExpiredException             Provided JWT has since expired, as defined by the 'exp' claim
-     *
-     * @uses jsonDecode
-     * @uses urlsafeB64Decode
+     * @param string $jwt The JWT string to decode.
+     * @param Key|ArrayAccess<string,Key>|array<string,Key> $keyOrKeyArray A Key object or an associative array of key IDs to Key objects.
+     * @param stdClass|null $headers Optional. If provided, will be populated with the JWT header.
+     * @return stdClass The decoded JWT payload as a PHP object.
+     * @throws InvalidArgumentException If the provided key or key array is empty or malformed.
+     * @throws DomainException If the JWT is malformed.
+     * @throws UnexpectedValueException If the JWT is invalid or uses an unsupported algorithm.
+     * @throws SignatureInvalidException If signature verification fails.
+     * @throws BeforeValidException If the token is used before its 'nbf' or 'iat' claim.
+     * @throws ExpiredException If the token has expired according to the 'exp' claim.
      */
     public static function decode(
         string $jwt,
@@ -182,19 +170,16 @@ class JWT
     }
 
     /**
-     * Converts and signs a PHP array into a JWT string.
+     * Encodes a PHP array payload into a signed JSON Web Token (JWT) string.
      *
-     * @param array<mixed>          $payload PHP array
-     * @param string|resource|OpenSSLAsymmetricKey|OpenSSLCertificate $key The secret key.
-     * @param string                $alg     Supported algorithms are 'ES384','ES256', 'ES256K', 'HS256',
-     *                                       'HS384', 'HS512', 'RS256', 'RS384', and 'RS512'
-     * @param string                $keyId
-     * @param array<string, string> $head    An array with header elements to attach
+     * Builds a JWT header with the specified algorithm and optional key ID and additional header elements, encodes the header and payload as base64url, signs the result, and returns the complete JWT string.
      *
-     * @return string A signed JWT
-     *
-     * @uses jsonEncode
-     * @uses urlsafeB64Encode
+     * @param array<mixed> $payload The payload to include in the JWT.
+     * @param string|resource|OpenSSLAsymmetricKey|OpenSSLCertificate $key The cryptographic key used for signing.
+     * @param string $alg The signing algorithm to use.
+     * @param string|null $keyId Optional key ID to include in the JWT header.
+     * @param array<string, string>|null $head Optional additional header elements.
+     * @return string The encoded and signed JWT string.
      */
     public static function encode(
         array $payload,
@@ -223,16 +208,15 @@ class JWT
     }
 
     /**
-     * Sign a string with a given key and algorithm.
+     * Generates a cryptographic signature for a message using the specified key and algorithm.
      *
-     * @param string $msg  The message to sign
-     * @param string|resource|OpenSSLAsymmetricKey|OpenSSLCertificate  $key  The secret key.
-     * @param string $alg  Supported algorithms are 'EdDSA', 'ES384', 'ES256', 'ES256K', 'HS256',
-     *                    'HS384', 'HS512', 'RS256', 'RS384', and 'RS512'
+     * Supports HMAC (HS256, HS384, HS512), RSA (RS256, RS384, RS512), ECDSA (ES256, ES256K, ES384), and EdDSA algorithms.
      *
-     * @return string An encrypted message
-     *
-     * @throws DomainException Unsupported algorithm or bad key was specified
+     * @param string $msg The message to sign.
+     * @param string|resource|OpenSSLAsymmetricKey|OpenSSLCertificate $key The signing key, which must be appropriate for the chosen algorithm.
+     * @param string $alg The algorithm to use for signing.
+     * @return string The generated binary signature.
+     * @throws DomainException If the algorithm is unsupported, the key is invalid, or signing fails.
      */
     public static function sign(
         string $msg,
@@ -288,17 +272,16 @@ class JWT
     }
 
     /**
-     * Verify a signature with the message, key and method. Not all methods
-     * are symmetric, so we must have a separate verify and sign method.
+     * Verifies a cryptographic signature for a given message using the specified algorithm and key.
      *
-     * @param string $msg         The original message (header and body)
-     * @param string $signature   The original signature
-     * @param string|resource|OpenSSLAsymmetricKey|OpenSSLCertificate  $keyMaterial For Ed*, ES*, HS*, a string key works. for RS*, must be an instance of OpenSSLAsymmetricKey
-     * @param string $alg         The algorithm
+     * Supports HMAC, RSA, ECDSA, and EdDSA algorithms. Returns true if the signature is valid, false if invalid, and throws a DomainException for unsupported algorithms or cryptographic errors.
      *
-     * @return bool
-     *
-     * @throws DomainException Invalid Algorithm, bad key, or OpenSSL failure
+     * @param string $msg The original message to verify.
+     * @param string $signature The signature to validate.
+     * @param string|resource|OpenSSLAsymmetricKey|OpenSSLCertificate $keyMaterial The key or certificate used for verification.
+     * @param string $alg The algorithm identifier.
+     * @return bool True if the signature is valid, false otherwise.
+     * @throws DomainException If the algorithm is unsupported, the key is invalid, or a cryptographic error occurs.
      */
     private static function verify(
         string $msg,
@@ -356,13 +339,13 @@ class JWT
     }
 
     /**
-     * Decode a JSON string into a PHP object.
+     * Decodes a JSON string into a PHP object.
      *
-     * @param string $input JSON string
+     * Returns the decoded object, or throws a DomainException if the input is not valid JSON or if decoding yields null for non-null input.
      *
-     * @return mixed The decoded JSON string
-     *
-     * @throws DomainException Provided string was invalid JSON
+     * @param string $input JSON string to decode.
+     * @return mixed Decoded PHP object or value.
+     * @throws DomainException If the input is invalid JSON or decoding fails.
      */
     public static function jsonDecode(string $input)
     {
@@ -377,13 +360,11 @@ class JWT
     }
 
     /**
-     * Encode a PHP array into a JSON string.
+     * Converts a PHP array to a JSON string.
      *
-     * @param array<mixed> $input A PHP array
-     *
-     * @return string JSON representation of the PHP array
-     *
-     * @throws DomainException Provided object could not be encoded to valid JSON
+     * @param array<mixed> $input The array to encode.
+     * @return string The JSON-encoded representation of the array.
+     * @throws DomainException If encoding fails or results in null.
      */
     public static function jsonEncode(array $input): string
     {
@@ -399,27 +380,25 @@ class JWT
         return $json;
     }
 
-    /**
-     * Decode a string with URL-safe Base64.
+    /****
+     * Decodes a URL-safe base64 encoded string to its original binary form.
      *
-     * @param string $input A Base64 encoded string
+     * Converts base64url encoding to standard base64 before decoding.
      *
-     * @return string A decoded string
-     *
-     * @throws InvalidArgumentException invalid base64 characters
+     * @param string $input URL-safe base64 encoded string.
+     * @return string Decoded binary string.
+     * @throws InvalidArgumentException If the input contains invalid base64 characters.
      */
     public static function urlsafeB64Decode(string $input): string
     {
         return \base64_decode(self::convertBase64UrlToBase64($input));
     }
 
-    /**
-     * Convert a string in the base64url (URL-safe Base64) encoding to standard base64.
+    /****
+     * Converts a base64url-encoded string to standard base64 encoding with appropriate padding.
      *
-     * @param string $input A Base64 encoded string with URL-safe characters (-_ and no padding)
-     *
-     * @return string A Base64 encoded string with standard characters (+/) and padding (=), when
-     * needed.
+     * @param string $input Base64url-encoded string using '-' and '_' instead of '+' and '/', without padding.
+     * @return string Standard base64-encoded string using '+' and '/', with '=' padding as needed.
      *
      * @see https://www.rfc-editor.org/rfc/rfc4648
      */
@@ -433,12 +412,11 @@ class JWT
         return \strtr($input, '-_', '+/');
     }
 
-    /**
-     * Encode a string with URL-safe Base64.
+    /****
+     * Encodes binary data into a URL-safe base64 string without padding.
      *
-     * @param string $input The string you want encoded
-     *
-     * @return string The base64 encode of what you passed in
+     * @param string $input Binary data to encode.
+     * @return string URL-safe base64 encoded string without trailing '=' padding.
      */
     public static function urlsafeB64Encode(string $input): string
     {
@@ -447,14 +425,15 @@ class JWT
 
 
     /**
-     * Determine if an algorithm has been provided for each Key
+     * Retrieves the appropriate Key object based on the provided key or key array and key ID.
      *
-     * @param Key|ArrayAccess<string,Key>|array<string,Key> $keyOrKeyArray
-     * @param string|null            $kid
+     * If a single Key is provided, it is returned directly. If an array or ArrayAccess of keys is provided,
+     * the key corresponding to the given key ID (`kid`) is returned. Throws an exception if the key ID is missing or invalid.
      *
-     * @throws UnexpectedValueException
-     *
-     * @return Key
+     * @param Key|ArrayAccess<string,Key>|array<string,Key> $keyOrKeyArray A single Key or a collection of keys indexed by key ID.
+     * @param string|null $kid The key ID used to select the correct key from the collection.
+     * @return Key The resolved Key object.
+     * @throws UnexpectedValueException If the key ID is missing or does not correspond to a valid key.
      */
     private static function getKey(
         $keyOrKeyArray,
@@ -481,9 +460,13 @@ class JWT
     }
 
     /**
-     * @param string $left  The string of known length to compare against
-     * @param string $right The user-supplied string
-     * @return bool
+     * Compares two strings in constant time to prevent timing attacks.
+     *
+     * Returns true if the strings are identical in both content and length, false otherwise.
+     *
+     * @param string $left The string of known length to compare against.
+     * @param string $right The user-supplied string.
+     * @return bool True if the strings are equal, false otherwise.
      */
     public static function constantTimeEquals(string $left, string $right): bool
     {
@@ -502,13 +485,10 @@ class JWT
     }
 
     /**
-     * Helper method to create a JSON error.
+     * Throws a DomainException with a descriptive message for a given JSON error code.
      *
-     * @param int $errno An error number from json_last_error()
-     *
-     * @throws DomainException
-     *
-     * @return void
+     * @param int $errno Error code returned by json_last_error().
+     * @throws DomainException Always thrown with a message corresponding to the JSON error.
      */
     private static function handleJsonError(int $errno): void
     {
@@ -526,12 +506,13 @@ class JWT
         );
     }
 
-    /**
-     * Get the number of bytes in cryptographic strings.
+    /****
+     * Returns the byte length of a string, using `mb_strlen` with '8bit' encoding if available.
      *
-     * @param string $str
+     * Ensures accurate length calculation for binary or multibyte strings in cryptographic contexts.
      *
-     * @return int
+     * @param string $str Input string.
+     * @return int Number of bytes in the string.
      */
     private static function safeStrlen(string $str): int
     {
@@ -542,10 +523,10 @@ class JWT
     }
 
     /**
-     * Convert an ECDSA signature to an ASN.1 DER sequence
+     * Converts a raw ECDSA signature (concatenated r and s values) into an ASN.1 DER-encoded sequence.
      *
-     * @param   string $sig The ECDSA signature to convert
-     * @return  string The encoded DER object
+     * @param string $sig Raw ECDSA signature as a binary string.
+     * @return string ASN.1 DER-encoded ECDSA signature.
      */
     private static function signatureToDER(string $sig): string
     {
@@ -573,13 +554,12 @@ class JWT
         );
     }
 
-    /**
-     * Encodes a value into a DER object.
+    /****
+     * Encodes a value as a DER (Distinguished Encoding Rules) object with the specified ASN.1 type.
      *
-     * @param   int     $type DER tag
-     * @param   string  $value the value to encode
-     *
-     * @return  string  the encoded object
+     * @param int $type ASN.1 tag type for the DER object.
+     * @param string $value The value to encode within the DER object.
+     * @return string DER-encoded binary string.
      */
     private static function encodeDER(int $type, string $value): string
     {
@@ -598,12 +578,13 @@ class JWT
     }
 
     /**
-     * Encodes signature from a DER object.
+     * Converts an ASN.1 DER-encoded ECDSA signature to a raw concatenated format.
      *
-     * @param   string  $der binary signature in DER format
-     * @param   int     $keySize the number of bits in the key
+     * Extracts the r and s values from a DER-encoded ECDSA signature and returns them as a single binary string, each padded to the specified key size in bytes.
      *
-     * @return  string  the signature
+     * @param string $der DER-encoded ECDSA signature.
+     * @param int $keySize Key size in bits.
+     * @return string Raw signature as concatenated r and s values, each padded to key size.
      */
     private static function signatureFromDER(string $der, int $keySize): string
     {
@@ -624,14 +605,15 @@ class JWT
         return $r . $s;
     }
 
-    /**
-     * Reads binary DER-encoded data and decodes into a single object
+    /****
+     * Decodes a single ASN.1 DER-encoded object from binary data at the specified offset.
      *
-     * @param string $der the binary data in DER format
-     * @param int $offset the offset of the data stream containing the object
-     * to decode
+     * Parses the DER structure, determines the type and length, and extracts the value for primitive types.
+     * For constructed types, the value is returned as null.
      *
-     * @return array{int, string|null} the new offset and the decoded object
+     * @param string $der   Binary DER-encoded data.
+     * @param int $offset   Offset in the data to start decoding from.
+     * @return array{int, string|null} Tuple containing the new offset after reading the object and the decoded value (or null for constructed types).
      */
     private static function readDER(string $der, int $offset = 0): array
     {

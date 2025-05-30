@@ -13,9 +13,11 @@ class EventDispatcher
     protected array $listeners = [];
 
     /**
-     * Singleton instance of the EventDispatcher.
+     * Returns the singleton instance of the EventDispatcher.
      *
-     * @return self
+     * Creates a new instance if one does not already exist.
+     *
+     * @return self The singleton EventDispatcher instance.
      */
     public static function getInstance(): self
     {
@@ -25,11 +27,11 @@ class EventDispatcher
         return self::$instance;
     }
 
-    /**
-     * Register a callback for an event.
+    /****
+     * Registers a callback to be invoked when the specified event is triggered.
      *
-     * @param string $event Event name
-     * @param callable $callback Callback function
+     * @param string $event The name of the event to listen for.
+     * @param callable $callback The callback function to execute when the event is triggered.
      */
     public function on(string $event, callable $callback): void
     {
@@ -40,12 +42,13 @@ class EventDispatcher
     }
 
     /**
-     * Trigger an event with optional arguments.
+     * Invokes all registered listeners for a given event, passing any provided arguments.
      *
-     * @param string $event Event name
-     * @param mixed ...$args Arguments to pass to the callbacks
+     * Calls each listener for the specified event in order, passing the supplied arguments. If any listener returns `false`, further listener execution is halted. Returns the result of the last executed listener, or `null` if no listeners are registered.
      *
-     * @return mixed
+     * @param string $event Name of the event to trigger.
+     * @param mixed ...$args Arguments to pass to each listener.
+     * @return mixed Result of the last executed listener, or `null` if no listeners are registered.
      */
     public function trigger(string $event, ...$args)
     {
@@ -63,12 +66,11 @@ class EventDispatcher
         return $result;
     }
 
-    /**
-     * Check if an event has any registered listeners.
+    /****
+     * Determines whether any listeners are registered for a given event.
      *
-     * @param string $event Event name
-     *
-     * @return bool True if the event has listeners, false otherwise
+     * @param string $event The name of the event to check.
+     * @return bool True if one or more listeners are registered for the event; false otherwise.
      */
     public function hasListeners(string $event): bool
     {
@@ -76,11 +78,10 @@ class EventDispatcher
     }
 
     /**
-     * Get all listeners registered for a specific event.
+     * Returns all listeners registered for a given event.
      *
-     * @param string $event Event name
-     *
-     * @return array<int, callable> Array of callbacks registered for the event
+     * @param string $event The name of the event.
+     * @return array<int, callable> List of callbacks registered for the event, or an empty array if none exist.
      */
     public function getListeners(string $event): array
     {
@@ -88,9 +89,9 @@ class EventDispatcher
     }
 
     /**
-     * Get a list of all events that have registered listeners.
+     * Returns an array of all event names that have registered listeners.
      *
-     * @return array<int, string> Array of event names
+     * @return array<int, string> List of event names with at least one registered listener.
      */
     public function getAllRegisteredEvents(): array
     {
@@ -98,12 +99,12 @@ class EventDispatcher
     }
 
     /**
-     * Remove a specific listener for an event.
+     * Removes a specific listener callback from the list of listeners for a given event.
      *
-     * @param string   $event    the event name
-     * @param callable $callback the exact callback to remove
+     * If the callback is registered for the event, it will be removed. If the callback is not found, no action is taken.
      *
-     * @return void
+     * @param string $event Name of the event.
+     * @param callable $callback The listener callback to remove.
      */
     public function removeListener(string $event, callable $callback): void
     {
@@ -116,11 +117,9 @@ class EventDispatcher
     }
 
     /**
-     * Remove all listeners for a specific event.
+     * Removes all listeners registered for the specified event.
      *
-     * @param string $event the event name
-     *
-     * @return void
+     * @param string $event Name of the event whose listeners should be removed.
      */
     public function removeAllListeners(string $event): void
     {
@@ -129,10 +128,8 @@ class EventDispatcher
         }
     }
 
-    /**
-     * Remove the current singleton instance of the EventDispatcher.
-     *
-     * @return void
+    /****
+     * Resets the singleton instance of the EventDispatcher, allowing a new instance to be created.
      */
     public static function resetInstance(): void
     {

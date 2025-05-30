@@ -55,9 +55,9 @@ class InstalledVersions
     private static $installedByVendor = array();
 
     /**
-     * Returns a list of all package names which are present, either by being installed, replaced or provided
+     * Returns the names of all packages currently present, including installed, replaced, or provided packages.
      *
-     * @return string[]
+     * @return string[] List of package names.
      * @psalm-return list<string>
      */
     public static function getInstalledPackages()
@@ -75,11 +75,10 @@ class InstalledVersions
     }
 
     /**
-     * Returns a list of all package names with a specific type e.g. 'library'
+     * Returns the names of all installed packages matching the specified type.
      *
-     * @param  string   $type
-     * @return string[]
-     * @psalm-return list<string>
+     * @param string $type The package type to filter by (e.g., 'library').
+     * @return string[] List of package names with the given type.
      */
     public static function getInstalledPackagesByType($type)
     {
@@ -96,14 +95,14 @@ class InstalledVersions
         return $packagesByType;
     }
 
-    /**
-     * Checks whether the given package is installed
+    /****
+     * Determines if a package is installed, including if it is provided or replaced by another package.
      *
-     * This also returns true if the package name is provided or replaced by another package
+     * Returns true if the specified package is present in any installed dataset. If $includeDevRequirements is false, only considers packages that are not marked as development requirements.
      *
-     * @param  string $packageName
-     * @param  bool   $includeDevRequirements
-     * @return bool
+     * @param string $packageName Name of the package to check.
+     * @param bool $includeDevRequirements Whether to include packages required for development only.
+     * @return bool True if the package is installed (or provided/replaced), false otherwise.
      */
     public static function isInstalled($packageName, $includeDevRequirements = true)
     {
@@ -116,17 +115,17 @@ class InstalledVersions
         return false;
     }
 
-    /**
-     * Checks whether the given package satisfies a version constraint
+    /****
+     * Determines if the installed version(s) of a package satisfy a given version constraint.
      *
-     * e.g. If you want to know whether version 2.3+ of package foo/bar is installed, you would call:
+     * Uses the provided VersionParser to evaluate whether the installed package version(s) match the specified constraint.
      *
-     *   Composer\InstalledVersions::satisfies(new VersionParser, 'foo/bar', '^2.3')
+     * @param VersionParser $parser Instance used to parse version constraints.
+     * @param string $packageName Name of the package to check.
+     * @param string|null $constraint Version constraint to test against.
+     * @return bool True if the installed version(s) satisfy the constraint, false otherwise.
      *
-     * @param  VersionParser $parser      Install composer/semver to have access to this class and functionality
-     * @param  string        $packageName
-     * @param  string|null   $constraint  A version constraint to check for, if you pass one you have to make sure composer/semver is required by your package
-     * @return bool
+     * @throws OutOfBoundsException If the package is not installed.
      */
     public static function satisfies(VersionParser $parser, $packageName, $constraint)
     {
@@ -136,14 +135,15 @@ class InstalledVersions
         return $provided->matches($constraint);
     }
 
-    /**
-     * Returns a version constraint representing all the range(s) which are installed for a given package
+    /****
+     * Returns a version constraint string representing all installed version ranges for the specified package.
      *
-     * It is easier to use this via isInstalled() with the $constraint argument if you need to check
-     * whether a given version of a package is installed, and not just whether it exists
+     * The returned constraint includes the pretty version, aliases, replaced, and provided versions, joined by '||'.
+     * Throws an OutOfBoundsException if the package is not installed.
      *
-     * @param  string $packageName
-     * @return string Version constraint usable with composer/semver
+     * @param string $packageName The name of the package to query.
+     * @return string A version constraint string usable with composer/semver.
+     * @throws \OutOfBoundsException If the package is not installed.
      */
     public static function getVersionRanges($packageName)
     {
@@ -173,8 +173,13 @@ class InstalledVersions
     }
 
     /**
-     * @param  string      $packageName
-     * @return string|null If the package is being replaced or provided but is not really installed, null will be returned as version, use satisfies or getVersionRanges if you need to know if a given version is present
+     * Returns the normalized version string of the specified installed package.
+     *
+     * If the package is replaced or provided but not actually installed, null is returned. Throws an OutOfBoundsException if the package is not installed.
+     *
+     * @param string $packageName The name of the package to query.
+     * @return string|null The normalized version string, or null if not available.
+     * @throws \OutOfBoundsException If the package is not installed.
      */
     public static function getVersion($packageName)
     {
@@ -193,9 +198,14 @@ class InstalledVersions
         throw new \OutOfBoundsException('Package "' . $packageName . '" is not installed');
     }
 
-    /**
-     * @param  string      $packageName
-     * @return string|null If the package is being replaced or provided but is not really installed, null will be returned as version, use satisfies or getVersionRanges if you need to know if a given version is present
+    /****
+     * Returns the human-readable version string of the specified installed package.
+     *
+     * If the package is only replaced or provided but not actually installed, null is returned. Throws an OutOfBoundsException if the package is not installed.
+     *
+     * @param string $packageName The name of the package to query.
+     * @return string|null The pretty version string, or null if not available.
+     * @throws \OutOfBoundsException If the package is not installed.
      */
     public static function getPrettyVersion($packageName)
     {
@@ -215,8 +225,13 @@ class InstalledVersions
     }
 
     /**
-     * @param  string      $packageName
-     * @return string|null If the package is being replaced or provided but is not really installed, null will be returned as reference
+     * Returns the source control reference (e.g., commit hash) for the specified installed package.
+     *
+     * If the package is only replaced or provided but not actually installed, null is returned. Throws an OutOfBoundsException if the package is not installed.
+     *
+     * @param string $packageName The name of the package to query.
+     * @return string|null The reference string, or null if not available.
+     * @throws \OutOfBoundsException If the package is not installed.
      */
     public static function getReference($packageName)
     {
@@ -235,9 +250,14 @@ class InstalledVersions
         throw new \OutOfBoundsException('Package "' . $packageName . '" is not installed');
     }
 
-    /**
-     * @param  string      $packageName
-     * @return string|null If the package is being replaced or provided but is not really installed, null will be returned as install path. Packages of type metapackages also have a null install path.
+    /****
+     * Returns the installation path of the specified package, or null if not available.
+     *
+     * If the package is replaced, provided, or is a metapackage, null is returned as the install path.
+     * Throws OutOfBoundsException if the package is not installed.
+     *
+     * @param string $packageName The name of the package to query.
+     * @return string|null The installation path, or null if not applicable.
      */
     public static function getInstallPath($packageName)
     {
@@ -252,9 +272,10 @@ class InstalledVersions
         throw new \OutOfBoundsException('Package "' . $packageName . '" is not installed');
     }
 
-    /**
-     * @return array
-     * @psalm-return array{name: string, pretty_version: string, version: string, reference: string|null, type: string, install_path: string, aliases: string[], dev: bool}
+    /****
+     * Returns metadata for the root Composer package of the project.
+     *
+     * @return array Associative array containing the root package's name, pretty version, normalized version, reference, type, install path, aliases, and dev flag.
      */
     public static function getRootPackage()
     {
@@ -264,11 +285,12 @@ class InstalledVersions
     }
 
     /**
-     * Returns the raw installed.php data for custom implementations
+     * Returns the raw installed package data from the first loaded dataset.
      *
-     * @deprecated Use getAllRawData() instead which returns all datasets for all autoloaders present in the process. getRawData only returns the first dataset loaded, which may not be what you expect.
-     * @return array[]
-     * @psalm-return array{root: array{name: string, pretty_version: string, version: string, reference: string|null, type: string, install_path: string, aliases: string[], dev: bool}, versions: array<string, array{pretty_version?: string, version?: string, reference?: string|null, type?: string, install_path?: string, aliases?: string[], dev_requirement: bool, replaced?: string[], provided?: string[]}>}
+     * This method is deprecated; use getAllRawData() to retrieve all datasets from all autoloaders. The returned array contains information about the root package and all installed package versions as loaded from the first available installed.php file.
+     *
+     * @deprecated Use getAllRawData() instead.
+     * @return array[] Raw installed package data from the first dataset loaded.
      */
     public static function getRawData()
     {
@@ -288,33 +310,21 @@ class InstalledVersions
     }
 
     /**
-     * Returns the raw data of all installed.php which are currently loaded for custom implementations
+     * Retrieves all loaded raw installed package data arrays.
      *
-     * @return array[]
-     * @psalm-return list<array{root: array{name: string, pretty_version: string, version: string, reference: string|null, type: string, install_path: string, aliases: string[], dev: bool}, versions: array<string, array{pretty_version?: string, version?: string, reference?: string|null, type?: string, install_path?: string, aliases?: string[], dev_requirement: bool, replaced?: string[], provided?: string[]}>}>
+     * @return array[] List of installed package datasets from all detected vendor directories and autoloaders.
      */
     public static function getAllRawData()
     {
         return self::getInstalled();
     }
 
-    /**
-     * Lets you reload the static array from another file
+    /****
+     * Reloads the installed package data with a new dataset.
      *
-     * This is only useful for complex integrations in which a project needs to use
-     * this class but then also needs to execute another project's autoloader in process,
-     * and wants to ensure both projects have access to their version of installed.php.
+     * Replaces the current installed package information with the provided data array. This is intended for advanced scenarios where multiple autoloaders or projects coexist in the same process, allowing each to access its own set of installed package metadata without interference.
      *
-     * A typical case would be PHPUnit, where it would need to make sure it reads all
-     * the data it needs from this class, then call reload() with
-     * `require $CWD/vendor/composer/installed.php` (or similar) as input to make sure
-     * the project in which it runs can then also use this class safely, without
-     * interference between PHPUnit's dependencies and the project's dependencies.
-     *
-     * @param  array[] $data A vendor/composer/installed.php data set
-     * @return void
-     *
-     * @psalm-param array{root: array{name: string, pretty_version: string, version: string, reference: string|null, type: string, install_path: string, aliases: string[], dev: bool}, versions: array<string, array{pretty_version?: string, version?: string, reference?: string|null, type?: string, install_path?: string, aliases?: string[], dev_requirement: bool, replaced?: string[], provided?: string[]}>} $data
+     * @param array[] $data The dataset representing installed package information, typically from a vendor/composer/installed.php file.
      */
     public static function reload($data)
     {
@@ -328,8 +338,10 @@ class InstalledVersions
         self::$installedIsLocalDir = false;
     }
 
-    /**
-     * @return string
+    /****
+     * Returns the directory path where this class is located, using forward slashes.
+     *
+     * @return string The normalized directory path of the current class file.
      */
     private static function getSelfDir()
     {
@@ -341,8 +353,11 @@ class InstalledVersions
     }
 
     /**
-     * @return array[]
-     * @psalm-return list<array{root: array{name: string, pretty_version: string, version: string, reference: string|null, type: string, install_path: string, aliases: string[], dev: bool}, versions: array<string, array{pretty_version?: string, version?: string, reference?: string|null, type?: string, install_path?: string, aliases?: string[], dev_requirement: bool, replaced?: string[], provided?: string[]}>}>
+     * Retrieves all installed Composer package datasets from available vendor directories.
+     *
+     * Aggregates installed package metadata from all detected vendor directories and the local directory, supporting multiple autoloaders. Returns an array of datasets, each containing root package information and a list of installed package versions.
+     *
+     * @return array[] List of installed package datasets, each with root package info and versions.
      */
     private static function getInstalled()
     {

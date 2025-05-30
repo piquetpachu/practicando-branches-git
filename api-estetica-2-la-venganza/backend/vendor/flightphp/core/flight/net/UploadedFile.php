@@ -34,13 +34,13 @@ class UploadedFile
     private int $error;
 
     /**
-     * Constructs a new UploadedFile object.
+     * Initializes a new instance representing an uploaded file.
      *
-     * @param string $name The name of the uploaded file.
-     * @param string $mimeType The MIME type of the uploaded file.
-     * @param int $size The size of the uploaded file in bytes.
-     * @param string $tmpName The temporary name of the uploaded file.
-     * @param int $error The error code associated with the uploaded file.
+     * @param string $name Original filename as provided by the client.
+     * @param string $mimeType MIME type as provided by the client.
+     * @param int $size Size of the uploaded file in bytes.
+     * @param string $tmpName Temporary filename assigned by PHP.
+     * @param int $error PHP upload error code.
      */
     public function __construct(string $name, string $mimeType, int $size, string $tmpName, int $error)
     {
@@ -52,9 +52,9 @@ class UploadedFile
     }
 
     /**
-     * Retrieves the client-side filename of the uploaded file.
+     * Returns the original filename provided by the client for the uploaded file.
      *
-     * @return string The client-side filename.
+     * @return string The original client-side filename.
      */
     public function getClientFilename(): string
     {
@@ -62,19 +62,19 @@ class UploadedFile
     }
 
     /**
-     * Retrieves the media type of the uploaded file as provided by the client.
+     * Returns the MIME type of the uploaded file as reported by the client.
      *
-     * @return string The media type of the uploaded file.
+     * @return string Client-provided MIME type of the uploaded file.
      */
     public function getClientMediaType(): string
     {
         return $this->mimeType;
     }
 
-    /**
-     * Returns the size of the uploaded file.
+    /****
+     * Retrieves the size of the uploaded file in bytes.
      *
-     * @return int The size of the uploaded file.
+     * @return int File size in bytes.
      */
     public function getSize(): int
     {
@@ -82,19 +82,19 @@ class UploadedFile
     }
 
     /**
-     * Retrieves the temporary name of the uploaded file.
+     * Returns the temporary filename assigned to the uploaded file by the server.
      *
-     * @return string The temporary name of the uploaded file.
+     * @return string Temporary file path on the server.
      */
     public function getTempName(): string
     {
         return $this->tmpName;
     }
 
-    /**
-     * Get the error code associated with the uploaded file.
+    /****
+     * Returns the PHP upload error code for the uploaded file.
      *
-     * @return int The error code.
+     * @return int The PHP file upload error code constant.
      */
     public function getError(): int
     {
@@ -102,11 +102,12 @@ class UploadedFile
     }
 
     /**
-     * Moves the uploaded file to the specified target path.
+     * Moves the uploaded file to a specified target path.
      *
-     * @param string $targetPath The path to move the file to.
+     * Throws an Exception if the upload encountered an error or if the file cannot be moved.
      *
-     * @return void
+     * @param string $targetPath Destination path for the uploaded file.
+     * @throws Exception If the upload failed or the file cannot be moved.
      */
     public function moveTo(string $targetPath): void
     {
@@ -127,11 +128,10 @@ class UploadedFile
     }
 
     /**
-     * Retrieves the error message for a given upload error code.
+     * Returns a human-readable message for a given PHP file upload error code.
      *
-     * @param int $error The upload error code.
-     *
-     * @return string The error message.
+     * @param int $error The PHP upload error code.
+     * @return string The corresponding error message.
      */
     protected function getUploadErrorMessage(int $error): string
     {

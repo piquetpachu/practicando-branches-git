@@ -4,17 +4,16 @@ namespace Firebase\JWT;
 interface JWTExceptionWithPayloadInterface
 {
     /**
-     * Get the payload that caused this exception.
-     *
-     * @return object
-     */
+ * Returns the payload object associated with the exception.
+ *
+ * @return object The payload that caused this exception.
+ */
     public function getPayload(): object;
 
     /**
-     * Get the payload that caused this exception.
-     *
-     * @param object $payload
-     * @return void
-     */
+ * Sets the payload object associated with the exception.
+ *
+ * @param object $payload The payload that caused the exception.
+ */
     public function setPayload(object $payload): void;
 }

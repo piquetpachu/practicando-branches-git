@@ -16,10 +16,10 @@ use flight\net\Route;
  */
 class RouteCommand extends AbstractBaseCommand
 {
-    /**
-     * Construct
+    /****
+     * Initializes the RouteCommand with options to filter routes by HTTP method.
      *
-     * @param array<string,mixed> $config JSON config from .runway-config.json
+     * @param array<string, mixed> $config Configuration array, typically loaded from .runway-config.json.
      */
     public function __construct(array $config)
     {
@@ -33,7 +33,9 @@ class RouteCommand extends AbstractBaseCommand
     }
 
     /**
-     * Executes the function
+     * Displays all registered routes in the Flight PHP application, optionally filtered by HTTP method.
+     *
+     * Retrieves route definitions from the application's index file, collects route details including pattern, methods, alias, streaming status, and middleware, and outputs them in a formatted table. If the `index_root` configuration is missing, an error is displayed and execution stops.
      *
      * @return void
      */
@@ -92,11 +94,12 @@ class RouteCommand extends AbstractBaseCommand
     }
 
     /**
-     * Whether or not to add the route based on the request
+     * Determines whether a route should be included based on the enabled HTTP method filters.
      *
-     * @param Route $route Flight Route object
+     * Includes the route if no method filters are set, or if the route matches any of the selected HTTP methods (GET, POST, PUT, DELETE, PATCH), including wildcard routes.
      *
-     * @return boolean
+     * @param Route $route The route to evaluate for inclusion.
+     * @return bool True if the route matches the filter criteria; otherwise, false.
      */
     public function shouldAddRoute(Route $route)
     {
