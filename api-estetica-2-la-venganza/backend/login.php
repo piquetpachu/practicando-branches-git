@@ -3,6 +3,8 @@ require_once 'vendor/autoload.php';
 use \Firebase\JWT\JWT;
 use \Firebase\JWT\Key;
 
+
+
 $key = "CLAVE_SECRETA_123"; // usá algo más seguro en producción
 
 // Login con JWT
