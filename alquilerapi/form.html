@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Registrar Inquilino</title>
+</head>
+<body>
+    <h2>Registrar Inquilino</h2>
+    <form id="formInquilino">
+        <input type="text" name="nombre_completo" placeholder="Nombre completo" required><br>
+        <input type="text" name="dni" placeholder="DNI" required><br>
+        <input type="text" name="telefono" placeholder="Teléfono" required><br>
+        <input type="email" name="email" placeholder="Correo electrónico" required><br>
+        <input type="text" name="direccion_origen" placeholder="Dirección de origen" required><br>
+        <input type="text" name="marca_vehiculo" placeholder="Marca del vehículo"><br>
+        <input type="text" name="modelo_vehiculo" placeholder="Modelo del vehículo"><br>
+        <input type="text" name="patente_vehiculo" placeholder="Patente del vehículo"><br>
+        <button type="submit">Registrar</button>
+    </form>
+
+    <div id="resultado"></div>
+
+    <script>
+        document.getElementById("formInquilino").addEventListener("submit", function(e) {
+            e.preventDefault();
+
+            const form = e.target;
+            const datos = {
+                nombre_completo: form.nombre_completo.value,
+                dni: form.dni.value,
+                telefono: form.telefono.value,
+                email: form.email.value,
+                direccion_origen: form.direccion_origen.value,
+                marca_vehiculo: form.marca_vehiculo.value,
+                modelo_vehiculo: form.modelo_vehiculo.value,
+                patente_vehiculo: form.patente_vehiculo.value
+            };
+
+            fetch("http://localhost/estetica/practicando-branches-git/alquilerapi/registrar_inquilino", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(datos)
+            })
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById("resultado").innerText = JSON.stringify(data, null, 2);
+            })
+            .catch(err => {
+                console.error("Error:", err);
+                document.getElementById("resultado").innerText = "Ocurrió un error al registrar.";
+            });
+        });
+    </script>
+</body>
+</html>
