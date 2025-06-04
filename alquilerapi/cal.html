@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Calendario de Alquileres y Deudores</title>
+  <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
+  <style>
+    #calendar {
+      max-width: 900px;
+      margin: 40px auto;
+    }
+  </style>
+</head>
+<body>
+
+  <h2 style="text-align:center;">Calendario de Alquileres Activos y Deudas</h2>
+  <div id="calendar"></div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', async function () {
+      const calendarEl = document.getElementById('calendar');
+
+      const calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth',
+        locale: 'es',
+        headerToolbar: {
+          left: 'prev,next today',
+          center: 'title',
+          right: 'dayGridMonth,timeGridWeek,listWeek'
+        },
+        events: async function(fetchInfo, successCallback, failureCallback) {
+          try {
+            // Obtener alquileres activos
+            const resAlquileres = await fetch('http://localhost/estetica/practicando-branches-git/alquilerapi/alquileres_activos');
+            const alquileres = await resAlquileres.json();
+
+            const eventosAlquileres = alquileres.map(item => ({
+              title: `Depto ${item.departamento} (${item.estado})`,
+              start: item.fecha_entrada,
+              end: item.fecha_salida,
+              color: '#3788d8',
+              extendedProps: {
+                tipo: 'alquiler',
+                precio: item.precio_total,
+                pago: item.forma_pago,
+                inquilino_id: item.nombre_completo
+              }
+            }));
+
+            // Obtener inquilinos con deuda
+            const resDeuda = await fetch('http://localhost/estetica/practicando-branches-git/alquilerapi/inquilinos_deuda');
+            const deudores = await resDeuda.json();
+
+            const eventosDeudores = deudores.map(item => ({
+              title: `${item.nombre_completo} (${item.estado})`,
+              start: item.fecha_pago,
+              color: '#e74c3c',
+              extendedProps: {
+                tipo: 'deuda',
+                monto: item.monto
+              }
+            }));
+
+            // Combinar ambos eventos
+            successCallback([...eventosAlquileres, ...eventosDeudores]);
+          } catch (error) {
+            console.error('Error cargando eventos:', error);
+            failureCallback(error);
+          }
+        },
+        eventClick: function(info) {
+          const props = info.event.extendedProps;
+
+          if (props.tipo === 'alquiler') {
+            alert(
+              `📦 Alquiler Activo\n` +
+              `Departamento: ${info.event.title}\n` +
+              `Entrada: ${info.event.start.toLocaleDateString()}\n` +
+              `Salida: ${info.event.end ? info.event.end.toLocaleDateString() : 'No definida'}\n` +
+              `Pago: ${props.pago}\n` +
+              `Precio: $${props.precio}\n` +
+              `Inquilino: ${props.inquilino_id}`
+            );
+          } else if (props.tipo === 'deuda') {
+            alert(
+              `💰 Deuda\n` +
+              `Inquilino: ${info.event.title}\n` +
+              `Fecha de pago esperada: ${info.event.start.toLocaleDateString()}\n` +
+              `Monto: $${props.monto}`
+            );
+          }
+        }
+      });
+
+      calendar.render();
+    });
+  </script>
+
+</body>
+</html>

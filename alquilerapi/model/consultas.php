@@ -11,14 +11,15 @@ function obtenerDepartamentosLibres($pdo) {
 }
 
 function alquileresActivos($pdo) {
-    $stmt = $pdo->query("SELECT a.*, d.numero AS departamento FROM alquileres a
+    $stmt = $pdo->query("SELECT i.nombre_completo,a.*, d.numero AS departamento FROM alquileres a
                          JOIN departamentos d ON a.id_departamento = d.id
+                         JOIN inquilinos i ON i.id = a.id_inquilino
                          WHERE a.estado = 'en curso'");
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
 function inquilinosConDeuda($pdo) {
-    $stmt = $pdo->query("SELECT i.nombre_completo, p.monto, p.estado 
+    $stmt = $pdo->query("SELECT i.nombre_completo, p.monto, p.estado, p.fecha_pago
                          FROM pagos p
                          JOIN alquileres a ON p.id_alquiler = a.id
                          JOIN inquilinos i ON a.id_inquilino = i.id
@@ -55,5 +56,6 @@ function registrarInquilino($pdo, $datos) {
 
     return $pdo->lastInsertId(); // Puedes retornar el ID si lo necesitás
 }
+
 
 ?>
