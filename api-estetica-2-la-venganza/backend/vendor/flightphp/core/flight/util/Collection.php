@@ -27,30 +27,34 @@ class Collection implements ArrayAccess, Iterator, Countable, JsonSerializable
      */
     private array $data;
 
-    /**
-     * Constructor.
+    /****
+     * Initializes the collection with optional initial data.
      *
-     * @param array<string, mixed> $data Initial data
+     * @param array<string, mixed> $data Optional associative array to populate the collection.
      */
     public function __construct(array $data = [])
     {
         $this->data = $data;
     }
 
-    /**
-     * Gets an item.
+    /****
+     * Retrieves the value associated with the specified key.
      *
-     * @return mixed Value if `$key` exists in collection data, otherwise returns `NULL`
+     * Returns the value for the given key if it exists in the collection; otherwise, returns null.
+     *
+     * @param string $key The key to retrieve from the collection.
+     * @return mixed The value associated with the key, or null if the key does not exist.
      */
     public function __get(string $key)
     {
         return $this->data[$key] ?? null;
     }
 
-    /**
-     * Set an item.
+    /****
+     * Sets the value for the specified key in the collection.
      *
-     * @param mixed  $value Value
+     * @param string $key The key to set.
+     * @param mixed $value The value to assign to the key.
      */
     public function __set(string $key, $value): void
     {
@@ -58,7 +62,10 @@ class Collection implements ArrayAccess, Iterator, Countable, JsonSerializable
     }
 
     /**
-     * Checks if an item exists.
+     * Determines whether the specified key exists in the collection.
+     *
+     * @param string $key The key to check for existence.
+     * @return bool True if the key exists; otherwise, false.
      */
     public function __isset(string $key): bool
     {
@@ -66,19 +73,22 @@ class Collection implements ArrayAccess, Iterator, Countable, JsonSerializable
     }
 
     /**
-     * Removes an item.
+     * Removes the item with the specified key from the collection.
+     *
+     * @param string $key The key of the item to remove.
      */
     public function __unset(string $key): void
     {
         unset($this->data[$key]);
     }
 
-    /**
-     * Gets an item at the offset.
+    /****
+     * Retrieves the value associated with the specified offset.
      *
-     * @param string $offset Offset
+     * Returns the value for the given offset if it exists; otherwise, returns null.
      *
-     * @return mixed Value
+     * @param string $offset The key of the item to retrieve.
+     * @return mixed The value at the specified offset, or null if not set.
      */
     #[\ReturnTypeWillChange]
     public function offsetGet($offset)
@@ -86,11 +96,13 @@ class Collection implements ArrayAccess, Iterator, Countable, JsonSerializable
         return $this->data[$offset] ?? null;
     }
 
-    /**
-     * Sets an item at the offset.
+    /****
+     * Sets a value in the collection at the specified offset.
      *
-     * @param ?string $offset Offset
-     * @param mixed  $value  Value
+     * If the offset is null, the value is appended to the collection; otherwise, it is set at the given offset.
+     *
+     * @param string|null $offset The key at which to set the value, or null to append.
+     * @param mixed $value The value to set.
      */
     #[\ReturnTypeWillChange]
     public function offsetSet($offset, $value): void
@@ -103,9 +115,10 @@ class Collection implements ArrayAccess, Iterator, Countable, JsonSerializable
     }
 
     /**
-     * Checks if an item exists at the offset.
+     * Determines whether a given key exists in the collection.
      *
-     * @param string $offset
+     * @param string $offset The key to check for existence.
+     * @return bool True if the key exists, false otherwise.
      */
     public function offsetExists($offset): bool
     {
@@ -113,27 +126,27 @@ class Collection implements ArrayAccess, Iterator, Countable, JsonSerializable
     }
 
     /**
-     * Removes an item at the offset.
+     * Removes the item at the specified offset from the collection.
      *
-     * @param string $offset
+     * @param string $offset The key of the item to remove.
      */
     public function offsetUnset($offset): void
     {
         unset($this->data[$offset]);
     }
 
-    /**
-     * Resets the collection.
+    /****
+     * Rewinds the collection to the first element for iteration.
      */
     public function rewind(): void
     {
         reset($this->data);
     }
 
-    /**
-     * Gets current collection item.
+    /****
+     * Returns the current element in the collection during iteration.
      *
-     * @return mixed Value
+     * @return mixed The current value, or false if the collection is empty or the pointer is invalid.
      */
     #[\ReturnTypeWillChange]
     public function current()
@@ -141,10 +154,10 @@ class Collection implements ArrayAccess, Iterator, Countable, JsonSerializable
         return current($this->data);
     }
 
-    /**
-     * Gets current collection key.
+    /****
+     * Returns the current key in the collection during iteration.
      *
-     * @return mixed Value
+     * @return string|null The current key, or null if the collection is empty or the pointer is invalid.
      */
     #[\ReturnTypeWillChange]
     public function key()
@@ -152,8 +165,8 @@ class Collection implements ArrayAccess, Iterator, Countable, JsonSerializable
         return key($this->data);
     }
 
-    /**
-     * Gets the next collection value.
+    /****
+     * Advances the internal pointer to the next element in the collection.
      */
     #[\ReturnTypeWillChange]
     public function next(): void
@@ -161,8 +174,10 @@ class Collection implements ArrayAccess, Iterator, Countable, JsonSerializable
         next($this->data);
     }
 
-    /**
-     * Checks if the current collection key is valid.
+    /****
+     * Determines whether the current position in the collection is valid during iteration.
+     *
+     * @return bool True if the current key is valid; otherwise, false.
      */
     public function valid(): bool
     {
@@ -170,7 +185,9 @@ class Collection implements ArrayAccess, Iterator, Countable, JsonSerializable
     }
 
     /**
-     * Gets the size of the collection.
+     * Returns the number of items in the collection.
+     *
+     * @return int The count of elements stored in the collection.
      */
     public function count(): int
     {
@@ -178,9 +195,9 @@ class Collection implements ArrayAccess, Iterator, Countable, JsonSerializable
     }
 
     /**
-     * Gets the item keys.
+     * Returns all keys in the collection.
      *
-     * @return array<int, string> Collection keys
+     * @return array<int, string> An array of all keys present in the collection.
      */
     public function keys(): array
     {
@@ -188,25 +205,30 @@ class Collection implements ArrayAccess, Iterator, Countable, JsonSerializable
     }
 
     /**
-     * Gets the collection data.
+     * Returns the entire data array stored in the collection.
      *
-     * @return array<string, mixed> Collection data
+     * @return array<string, mixed> The collection's data as an associative array.
      */
     public function getData(): array
     {
         return $this->data;
     }
 
-    /**
-     * Sets the collection data.
+    /****
+     * Replaces the entire collection data with the provided array.
      *
-     * @param array<string, mixed> $data New collection data
+     * @param array<string, mixed> $data The new data to set for the collection.
      */
     public function setData(array $data): void
     {
         $this->data = $data;
     }
 
+    /**
+     * Returns the collection's data for JSON serialization.
+     *
+     * @return array The internal data array to be serialized as JSON.
+     */
     #[\ReturnTypeWillChange]
     public function jsonSerialize()
     {
@@ -214,7 +236,7 @@ class Collection implements ArrayAccess, Iterator, Countable, JsonSerializable
     }
 
     /**
-     * Removes all items from the collection.
+     * Empties the collection, removing all stored items.
      */
     public function clear(): void
     {

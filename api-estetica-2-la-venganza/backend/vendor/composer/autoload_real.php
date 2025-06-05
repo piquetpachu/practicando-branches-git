@@ -6,6 +6,13 @@ class ComposerAutoloaderInitd61a0cb6fcf6ab3ffe7746c206409094
 {
     private static $loader;
 
+    /****
+     * Autoloads the Composer ClassLoader class when requested.
+     *
+     * If the specified class name matches 'Composer\Autoload\ClassLoader', this method requires the corresponding ClassLoader.php file from the current directory.
+     *
+     * @param string $class Fully qualified class name being autoloaded.
+     */
     public static function loadClassLoader($class)
     {
         if ('Composer\Autoload\ClassLoader' === $class) {
@@ -14,7 +21,11 @@ class ComposerAutoloaderInitd61a0cb6fcf6ab3ffe7746c206409094
     }
 
     /**
-     * @return \Composer\Autoload\ClassLoader
+     * Initializes and returns the singleton Composer autoloader instance.
+     *
+     * Performs platform checks, sets up the autoloader with static configuration, registers it with SPL, and preloads required files while ensuring each is loaded only once.
+     *
+     * @return \Composer\Autoload\ClassLoader The initialized Composer autoloader instance.
      */
     public static function getLoader()
     {
