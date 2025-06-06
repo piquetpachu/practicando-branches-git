@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gestión de Alquileres</title>
+  <style>
+    body {
+      background-color: #121212;
+      color: #f5f5f5;
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+    h1, h2 {
+      color: #90caf9;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+      background-color: #1e1e1e;
+    }
+    th, td {
+      border: 1px solid #333;
+      padding: 10px;
+      text-align: left;
+    }
+    th {
+      background-color: #263238;
+    }
+    input, button {
+      margin: 5px;
+      padding: 8px;
+      background-color: #333;
+      border: 1px solid #555;
+      color: #fff;
+    }
+    button:hover {
+      background-color: #444;
+    }
+  </style>
+</head>
+<body>
+  <h1>Gestión de Alquileres</h1>
+
+  <!-- Registro de inquilino -->
+  <h2>Registrar Inquilino</h2>
+  <form id="formInquilino">
+    <input name="nombre_completo" placeholder="Nombre completo" required />
+    <input name="dni" placeholder="DNI" required />
+    <input name="telefono" placeholder="Teléfono" />
+    <input name="email" placeholder="Email" />
+    <input name="direccion_origen" placeholder="Dirección de origen" />
+    <input name="marca_vehiculo" placeholder="Marca Vehículo" />
+    <input name="modelo_vehiculo" placeholder="Modelo Vehículo" />
+    <input name="patente_vehiculo" placeholder="Patente Vehículo" />
+    <button type="submit">Registrar</button>
+  </form>
+
+  <!-- Tabla de inquilinos -->
+  <h2>Inquilinos con Deuda</h2>
+  <table id="tablaInquilinos">
+    <thead>
+      <tr>
+        <th>Nombre</th>
+        <th>Monto</th>
+        <th>Estado</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <script>
+    const BASE_URL = "http://localhost/estetica/practicando-branches-git/alquilerapi/";
+
+    async function cargarInquilinos() {
+      const res = await fetch(BASE_URL + "inquilinos_deuda");
+      const data = await res.json();
+
+      const tbody = document.querySelector("#tablaInquilinos tbody");
+      tbody.innerHTML = "";
+
+      data.forEach(inq => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${inq.nombre_completo}</td>
+          <td>$${inq.monto}</td>
+          <td>${inq.estado}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    document.getElementById("formInquilino").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const form = e.target;
+      const datos = Object.fromEntries(new FormData(form));
+
+      const res = await fetch(BASE_URL + "registrar_inquilino", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(datos),
+      });
+
+      const json = await res.json();
+      alert(json.mensaje || json.error);
+      form.reset();
+      cargarInquilinos();
+    });
+
+    // Cargar tabla al iniciar
+    cargarInquilinos();
+  </script>
+</body>
+</html>
+    

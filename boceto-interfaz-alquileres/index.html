@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html lang="es" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Gestión de Alquileres</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <div class="header-left">
+                <i class="fas fa-building"></i>
+                <h1>Gestión de Alquileres</h1>
+            </div>
+            <div class="header-right">
+                <button class="btn-icon notification-btn" onclick="toggleNotifications()">
+                    <i class="fas fa-bell"></i>
+                    <span class="notification-badge">3</span>
+                </button>
+                <button class="btn-icon theme-toggle" onclick="toggleTheme()">
+                    <i class="fas fa-moon"></i>
+                </button>
+                <span class="user-name">Admin Usuario</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Navigation Tabs -->
+    <nav class="nav-tabs">
+        <div class="nav-container">
+            <button class="nav-tab active" data-tab="dashboard">
+                <i class="fas fa-home"></i>
+                <span>Dashboard</span>
+            </button>
+            <button class="nav-tab" data-tab="departments">
+                <i class="fas fa-building"></i>
+                <span>Deptos</span>
+            </button>
+            <button class="nav-tab" data-tab="tenants">
+                <i class="fas fa-users"></i>
+                <span>Inquilinos</span>
+            </button>
+            <button class="nav-tab" data-tab="calendar">
+                <i class="fas fa-calendar"></i>
+                <span>Calendario</span>
+            </button>
+            <button class="nav-tab" data-tab="payments">
+                <i class="fas fa-credit-card"></i>
+                <span>Pagos</span>
+            </button>
+            <button class="nav-tab" data-tab="reports">
+                <i class="fas fa-chart-bar"></i>
+                <span>Reportes</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Dashboard Tab -->
+        <div id="dashboard" class="tab-content active">
+            <div class="page-header">
+                <h2>Dashboard</h2>
+                <p>Vista general del sistema</p>
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <span class="stat-title">Ocupación</span>
+                        <i class="fas fa-building stat-icon"></i>
+                    </div>
+                    <div class="stat-value">3/4</div>
+                    <div class="stat-progress">
+                        <div class="progress-bar" style="width: 75%"></div>
+                    </div>
+                    <div class="stat-description">75% ocupado</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <span class="stat-title">Inquilinos Activos</span>
+                        <i class="fas fa-users stat-icon"></i>
+                    </div>
+                    <div class="stat-value">8</div>
+                    <div class="stat-description">+2 desde el mes pasado</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <span class="stat-title">Ingresos del Mes</span>
+                        <i class="fas fa-dollar-sign stat-icon"></i>
+                    </div>
+                    <div class="stat-value">$45,000</div>
+                    <div class="stat-description">
+                        <i class="fas fa-trending-up"></i>
+                        +12% vs mes anterior
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <span class="stat-title">Pagos Pendientes</span>
+                        <i class="fas fa-exclamation-triangle stat-icon text-warning"></i>
+                    </div>
+                    <div class="stat-value text-danger">2</div>
+                    <div class="stat-description">Requieren atención</div>
+                </div>
+            </div>
+
+            <!-- Department Status & Activities -->
+            <div class="dashboard-grid">
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Estado de Departamentos</h3>
+                        <p>Vista rápida del estado actual</p>
+                    </div>
+                    <div class="card-content">
+                        <div class="department-list">
+                            <div class="department-item">
+                                <div class="department-info">
+                                    <div class="status-dot status-occupied"></div>
+                                    <div>
+                                        <div class="department-number">Depto 101</div>
+                                        <div class="tenant-name">Juan Pérez</div>
+                                    </div>
+                                </div>
+                                <div class="department-status">
+                                    <span class="badge badge-danger">Ocupado</span>
+                                    <div class="checkout-date">Hasta: 2025-06-08</div>
+                                </div>
+                            </div>
+
+                            <div class="department-item">
+                                <div class="department-info">
+                                    <div class="status-dot status-free"></div>
+                                    <div>
+                                        <div class="department-number">Depto 102</div>
+                                    </div>
+                                </div>
+                                <div class="department-status">
+                                    <span class="badge badge-success">Libre</span>
+                                </div>
+                            </div>
+
+                            <div class="department-item">
+                                <div class="department-info">
+                                    <div class="status-dot status-occupied"></div>
+                                    <div>
+                                        <div class="department-number">Depto 201</div>
+                                        <div class="tenant-name">María García</div>
+                                    </div>
+                                </div>
+                                <div class="department-status">
+                                    <span class="badge badge-danger">Ocupado</span>
+                                    <div class="checkout-date">Hasta: 2025-06-10</div>
+                                </div>
+                            </div>
+
+                            <div class="department-item">
+                                <div class="department-info">
+                                    <div class="status-dot status-reserved"></div>
+                                    <div>
+                                        <div class="department-number">Depto 202</div>
+                                        <div class="tenant-name">Carlos López (Reserva)</div>
+                                    </div>
+                                </div>
+                                <div class="department-status">
+                                    <span class="badge badge-warning">Reservado</span>
+                                    <div class="checkout-date">Hasta: 2025-06-12</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Próximas Actividades</h3>
+                        <p>Eventos importantes de los próximos días</p>
+                    </div>
+                    <div class="card-content">
+                        <div class="activity-list">
+                            <div class="activity-item activity-warning">
+                                <i class="fas fa-calendar activity-icon"></i>
+                                <div>
+                                    <div class="activity-title">Check-out Hoy</div>
+                                    <div class="activity-description">Depto 101 - Juan Pérez</div>
+                                </div>
+                            </div>
+
+                            <div class="activity-item activity-danger">
+                                <i class="fas fa-dollar-sign activity-icon"></i>
+                                <div>
+                                    <div class="activity-title">Pago Vencido</div>
+                                    <div class="activity-description">Depto 201 - $5,000</div>
+                                </div>
+                            </div>
+
+                            <div class="activity-item activity-info">
+                                <i class="fas fa-users activity-icon"></i>
+                                <div>
+                                    <div class="activity-title">Nueva Reserva</div>
+                                    <div class="activity-description">Depto 102 - Mañana</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Departments Tab -->
+        <div id="departments" class="tab-content">
+            <div class="page-header">
+                <div>
+                    <h2>Gestión de Departamentos</h2>
+                    <p>Administra los 4 departamentos disponibles</p>
+                </div>
+                <button class="btn btn-primary" onclick="openDepartmentModal()">
+                    <i class="fas fa-plus"></i>
+                    Agregar Departamento
+                </button>
+            </div>
+
+            <!-- Mobile Department Cards -->
+            <div class="mobile-cards" id="departmentCards">
+                <!-- Cards will be generated by JavaScript -->
+            </div>
+
+            <!-- Desktop Department Table -->
+            <div class="card desktop-table">
+                <div class="card-header">
+                    <h3>Lista de Departamentos</h3>
+                </div>
+                <div class="card-content">
+                    <div class="table-container">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Número</th>
+                                    <th>Capacidad</th>
+                                    <th>Estado</th>
+                                    <th>Tarifa Diaria</th>
+                                    <th>Inquilino Actual</th>
+                                    <th>Comodidades</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="departmentTableBody">
+                                <!-- Rows will be generated by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tenants Tab -->
+        <div id="tenants" class="tab-content">
+            <div class="page-header">
+                <div>
+                    <h2>Gestión de Inquilinos</h2>
+                    <p>Administra la información de los inquilinos</p>
+                </div>
+                <button class="btn btn-primary" onclick="openTenantModal()">
+                    <i class="fas fa-plus"></i>
+                    Nuevo Inquilino
+                </button>
+            </div>
+
+            <!-- Mobile Tenant Cards -->
+            <div class="mobile-cards" id="tenantCards">
+                <!-- Cards will be generated by JavaScript -->
+            </div>
+
+            <!-- Desktop Tenant Table -->
+            <div class="card desktop-table">
+                <div class="card-header">
+                    <h3>Lista de Inquilinos</h3>
+                </div>
+                <div class="card-content">
+                    <div class="table-container">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Nombre</th>
+                                    <th>DNI</th>
+                                    <th>Contacto</th>
+                                    <th>Departamento</th>
+                                    <th>Fechas</th>
+                                    <th>Estado Pago</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tenantTableBody">
+                                <!-- Rows will be generated by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Calendar Tab -->
+        <div id="calendar" class="tab-content">
+            <div class="page-header">
+                <div>
+                    <h2>Calendario de Reservas</h2>
+                    <p>Vista mensual de ocupación por departamento</p>
+                </div>
+                <button class="btn btn-primary">
+                    <i class="fas fa-plus"></i>
+                    Nueva Reserva
+                </button>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <div class="calendar-nav">
+                        <button class="btn btn-outline" onclick="navigateMonth(-1)">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <h3 id="calendarTitle">Junio 2025</h3>
+                        <button class="btn btn-outline" onclick="navigateMonth(1)">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="card-content">
+                    <!-- Calendar Legend -->
+                    <div class="calendar-legend">
+                        <div class="legend-item">
+                            <div class="legend-color status-free"></div>
+                            <span>Libre</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color status-occupied"></div>
+                            <span>Ocupado</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color status-reserved"></div>
+                            <span>Reservado</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color status-maintenance"></div>
+                            <span>Mantenimiento</span>
+                        </div>
+                    </div>
+
+                    <!-- Calendar Grid -->
+                    <div class="calendar-grid" id="calendarGrid">
+                        <!-- Calendar will be generated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Calendar Stats -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value text-success">1</div>
+                    <div class="stat-description">Departamentos Libres</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value text-danger">2</div>
+                    <div class="stat-description">Departamentos Ocupados</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value text-warning">1</div>
+                    <div class="stat-description">Reservas Pendientes</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value text-info">75%</div>
+                    <div class="stat-description">Ocupación Promedio</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Payments Tab -->
+        <div id="payments" class="tab-content">
+            <div class="page-header">
+                <div>
+                    <h2>Gestión de Pagos</h2>
+                    <p>Administra pagos y estado de deudas</p>
+                </div>
+                <button class="btn btn-primary" onclick="openPaymentModal()">
+                    <i class="fas fa-plus"></i>
+                    Registrar Pago
+                </button>
+            </div>
+
+            <!-- Payment Summary -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <span class="stat-title">Total Recaudado</span>
+                        <i class="fas fa-check-circle stat-icon text-success"></i>
+                    </div>
+                    <div class="stat-value text-success">$52,500</div>
+                    <div class="stat-description">Este mes</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <span class="stat-title">Pagos Pendientes</span>
+                        <i class="fas fa-exclamation-triangle stat-icon text-danger"></i>
+                    </div>
+                    <div class="stat-value text-danger">$21,600</div>
+                    <div class="stat-description">2 inquilinos</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <span class="stat-title">Tasa de Cobro</span>
+                        <i class="fas fa-dollar-sign stat-icon text-info"></i>
+                    </div>
+                    <div class="stat-value text-info">71%</div>
+                    <div class="stat-description">Del total esperado</div>
+                </div>
+            </div>
+
+            <!-- Payment Tabs -->
+            <div class="payment-tabs">
+                <button class="payment-tab active" data-payment-tab="all">Todos los Pagos</button>
+                <button class="payment-tab" data-payment-tab="pending">Pendientes</button>
+                <button class="payment-tab" data-payment-tab="paid">Pagados</button>
+            </div>
+
+            <!-- Mobile Payment Cards -->
+            <div class="mobile-cards" id="paymentCards">
+                <!-- Cards will be generated by JavaScript -->
+            </div>
+
+            <!-- Desktop Payment Table -->
+            <div class="card desktop-table">
+                <div class="card-content">
+                    <div class="table-container">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Inquilino</th>
+                                    <th>Departamento</th>
+                                    <th>Período</th>
+                                    <th>Monto</th>
+                                    <th>Fecha Pago</th>
+                                    <th>Estado</th>
+                                    <th>Forma Pago</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="paymentTableBody">
+                                <!-- Rows will be generated by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reports Tab -->
+        <div id="reports" class="tab-content">
+            <div class="page-header">
+                <div>
+                    <h2>Reportes y Estadísticas</h2>
+                    <p>Análisis detallado del negocio</p>
+                </div>
+                <div class="report-controls">
+                    <select class="select">
+                        <option value="month">Este Mes</option>
+                        <option value="quarter">Este Trimestre</option>
+                        <option value="year">Este Año</option>
+                    </select>
+                    <button class="btn btn-outline">
+                        <i class="fas fa-download"></i>
+                        Exportar
+                    </button>
+                </div>
+            </div>
+
+            <!-- Key Metrics -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <span class="stat-title">Ingresos Totales</span>
+                        <i class="fas fa-dollar-sign stat-icon"></i>
+                    </div>
+                    <div class="stat-value">$248,000</div>
+                    <div class="stat-description">
+                        <i class="fas fa-trending-up"></i>
+                        +12% vs mes anterior
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <span class="stat-title">Ocupación Promedio</span>
+                        <i class="fas fa-building stat-icon"></i>
+                    </div>
+                    <div class="stat-value">82.5%</div>
+                    <div class="stat-description">Últimos 6 meses</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <span class="stat-title">Total Reservas</span>
+                        <i class="fas fa-users stat-icon"></i>
+                    </div>
+                    <div class="stat-value">103</div>
+                    <div class="stat-description">Este mes</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <span class="stat-title">Tarifa Promedio</span>
+                        <i class="fas fa-dollar-sign stat-icon"></i>
+                    </div>
+                    <div class="stat-value">$1,625</div>
+                    <div class="stat-description">Por noche</div>
+                </div>
+            </div>
+
+            <!-- Charts and Tables -->
+            <div class="reports-grid">
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Top Departamentos</h3>
+                        <p>Ranking por ingresos generados</p>
+                    </div>
+                    <div class="card-content">
+                        <div class="ranking-list">
+                            <div class="ranking-item">
+                                <div class="ranking-info">
+                                    <span class="ranking-position">#1</span>
+                                    <div>
+                                        <div class="ranking-title">Departamento 201</div>
+                                        <div class="ranking-subtitle">30 reservas</div>
+                                    </div>
+                                </div>
+                                <div class="ranking-value">
+                                    <div class="ranking-amount">$60,000</div>
+                                    <div class="ranking-average">$2,000 promedio</div>
+                                </div>
+                            </div>
+
+                            <div class="ranking-item">
+                                <div class="ranking-info">
+                                    <span class="ranking-position">#2</span>
+                                    <div>
+                                        <div class="ranking-title">Departamento 202</div>
+                                        <div class="ranking-subtitle">28 reservas</div>
+                                    </div>
+                                </div>
+                                <div class="ranking-value">
+                                    <div class="ranking-amount">$50,400</div>
+                                    <div class="ranking-average">$1,800 promedio</div>
+                                </div>
+                            </div>
+
+                            <div class="ranking-item">
+                                <div class="ranking-info">
+                                    <span class="ranking-position">#3</span>
+                                    <div>
+                                        <div class="ranking-title">Departamento 101</div>
+                                        <div class="ranking-subtitle">25 reservas</div>
+                                    </div>
+                                </div>
+                                <div class="ranking-value">
+                                    <div class="ranking-amount">$37,500</div>
+                                    <div class="ranking-average">$1,500 promedio</div>
+                                </div>
+                            </div>
+
+                            <div class="ranking-item">
+                                <div class="ranking-info">
+                                    <span class="ranking-position">#4</span>
+                                    <div>
+                                        <div class="ranking-title">Departamento 102</div>
+                                        <div class="ranking-subtitle">20 reservas</div>
+                                    </div>
+                                </div>
+                                <div class="ranking-value">
+                                    <div class="ranking-amount">$24,000</div>
+                                    <div class="ranking-average">$1,200 promedio</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Deudas Pendientes</h3>
+                        <p>Inquilinos con pagos pendientes</p>
+                    </div>
+                    <div class="card-content">
+                        <div class="debt-list">
+                            <div class="debt-item debt-overdue">
+                                <div class="debt-info">
+                                    <div class="debt-name">Carlos López</div>
+                                    <div class="debt-details">Depto 202 - Vencido</div>
+                                </div>
+                                <div class="debt-amount">
+                                    <div class="debt-value">$12,600</div>
+                                    <span class="badge badge-danger">Debe</span>
+                                </div>
+                            </div>
+
+                            <div class="debt-item debt-partial">
+                                <div class="debt-info">
+                                    <div class="debt-name">María García</div>
+                                    <div class="debt-details">Depto 201 - Parcial</div>
+                                </div>
+                                <div class="debt-amount">
+                                    <div class="debt-value">$9,000</div>
+                                    <span class="badge badge-warning">Parcial</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modals -->
+    <div id="departmentModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="departmentModalTitle">Agregar Departamento</h3>
+                <button class="modal-close" onclick="closeDepartmentModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="departmentForm">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="deptNumber">Número</label>
+                            <input type="text" id="deptNumber" class="form-input" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="deptCapacity">Capacidad</label>
+                            <input type="number" id="deptCapacity" class="form-input" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="deptRate">Tarifa Diaria</label>
+                            <input type="number" id="deptRate" class="form-input" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="deptStatus">Estado</label>
+                            <select id="deptStatus" class="form-select">
+                                <option value="libre">Libre</option>
+                                <option value="ocupado">Ocupado</option>
+                                <option value="reservado">Reservado</option>
+                                <option value="mantenimiento">Mantenimiento</option>
+                            </select>
+                        </div>
+                        <div class="form-group form-group-full">
+                            <label for="deptAmenities">Comodidades</label>
+                            <textarea id="deptAmenities" class="form-textarea" rows="3"></textarea>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="closeDepartmentModal()">Cancelar</button>
+                <button class="btn btn-primary" onclick="saveDepartment()">Guardar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tenant Modal -->
+    <div id="tenantModal" class="modal">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h3 id="tenantModalTitle">Nuevo Inquilino</h3>
+                <button class="modal-close" onclick="closeTenantModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="tenantForm">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="tenantName">Nombre Completo</label>
+                            <input type="text" id="tenantName" class="form-input" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="tenantDNI">DNI</label>
+                            <input type="text" id="tenantDNI" class="form-input" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="tenantPhone">Teléfono</label>
+                            <input type="tel" id="tenantPhone" class="form-input" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="tenantEmail">Email</label>
+                            <input type="email" id="tenantEmail" class="form-input" required>
+                        </div>
+                        <div class="form-group form-group-full">
+                            <label for="tenantAddress">Dirección de Origen</label>
+                            <input type="text" id="tenantAddress" class="form-input" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="vehicleBrand">Marca Vehículo</label>
+                            <input type="text" id="vehicleBrand" class="form-input">
+                        </div>
+                        <div class="form-group">
+                            <label for="vehicleModel">Modelo</label>
+                            <input type="text" id="vehicleModel" class="form-input">
+                        </div>
+                        <div class="form-group">
+                            <label for="vehiclePlate">Patente</label>
+                            <input type="text" id="vehiclePlate" class="form-input">
+                        </div>
+                        <div class="form-group">
+                            <label for="tenantDepartment">Departamento</label>
+                            <select id="tenantDepartment" class="form-select">
+                                <option value="101">101</option>
+                                <option value="102">102</option>
+                                <option value="201">201</option>
+                                <option value="202">202</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="checkInDate">Fecha Entrada</label>
+                            <input type="date" id="checkInDate" class="form-input" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="checkOutDate">Fecha Salida</label>
+                            <input type="date" id="checkOutDate" class="form-input" required>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="closeTenantModal()">Cancelar</button>
+                <button class="btn btn-primary" onclick="saveTenant()">Registrar Inquilino</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payment Modal -->
+    <div id="paymentModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="paymentModalTitle">Registrar Nuevo Pago</h3>
+                <button class="modal-close" onclick="closePaymentModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="paymentForm">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="paymentTenant">Inquilino</label>
+                            <select id="paymentTenant" class="form-select" required>
+                                <option value="">Seleccionar inquilino</option>
+                                <option value="Juan Pérez">Juan Pérez</option>
+                                <option value="María García">María García</option>
+                                <option value="Carlos López">Carlos López</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="paymentDepartment">Departamento</label>
+                            <input type="text" id="paymentDepartment" class="form-input" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="paymentAmount">Monto</label>
+                            <input type="number" id="paymentAmount" class="form-input" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="paymentDate">Fecha de Pago</label>
+                            <input type="date" id="paymentDate" class="form-input" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="paymentMethod">Forma de Pago</label>
+                            <select id="paymentMethod" class="form-select" required>
+                                <option value="">Seleccionar forma</option>
+                                <option value="Efectivo">Efectivo</option>
+                                <option value="Transferencia">Transferencia</option>
+                                <option value="Tarjeta">Tarjeta</option>
+                                <option value="Cheque">Cheque</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="paymentStatus">Estado</label>
+                            <select id="paymentStatus" class="form-select" required>
+                                <option value="pagado">Pagado</option>
+                                <option value="parcial">Parcial</option>
+                                <option value="debe">Debe</option>
+                            </select>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="closePaymentModal()">Cancelar</button>
+                <button class="btn btn-primary" onclick="savePayment()">Registrar Pago</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notifications Panel -->
+    <div id="notificationsPanel" class="notifications-panel">
+        <div class="notification-item notification-warning">
+            <i class="fas fa-exclamation-triangle"></i>
+            <div class="notification-content">
+                <div class="notification-message">Pago pendiente - Depto 2</div>
+                <div class="notification-time">Hace 5 minutos</div>
+            </div>
+            <button class="notification-close" onclick="dismissNotification(this)">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <div class="notification-item notification-info">
+            <i class="fas fa-info-circle"></i>
+            <div class="notification-content">
+                <div class="notification-message">Check-out hoy - Depto 1</div>
+                <div class="notification-time">Hace 10 minutos</div>
+            </div>
+            <button class="notification-close" onclick="dismissNotification(this)">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <div class="notification-item notification-success">
+            <i class="fas fa-check-circle"></i>
+            <div class="notification-content">
+                <div class="notification-message">Nueva reserva - Depto 3</div>
+                <div class="notification-time">Hace 15 minutos</div>
+            </div>
+            <button class="notification-close" onclick="dismissNotification(this)">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

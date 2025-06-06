@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Calendario de Alquileres y Deudores</title>
+  <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
+  <style>
+    /* Fondo oscuro general */
+    body {
+      background-color: #121212;
+      color: #e0e0e0;
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+
+    h2 {
+      color: #ffffff;
+      text-align: center;
+      margin-top: 20px;
+    }
+
+    #calendar {
+      max-width: 900px;
+      margin: 40px auto;
+      background-color: #1e1e1e;
+      padding: 10px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
+    }
+
+    /* Estilo oscuro para el calendario */
+    .fc {
+      background-color: #1e1e1e;
+      color: #e0e0e0;
+    }
+
+    .fc .fc-toolbar-title {
+      color: #ffffff;
+    }
+
+    .fc-button {
+      background-color: #333333;
+      color: #e0e0e0;
+      border: none;
+    }
+
+    .fc-button:hover {
+      background-color: #444444;
+    }
+
+    .fc-daygrid-day-number {
+      color: #bbb;
+    }
+
+    .fc-daygrid-event {
+      background-color: #2a3f54;
+      color: #fff;
+    }
+
+    .fc-event-title {
+      color: #fff;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>Calendario de Alquileres Activos y Deudas</h2>
+  <div id="calendar"></div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', async function () {
+      const calendarEl = document.getElementById('calendar');
+
+      const calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth',
+        locale: 'es',
+        themeSystem: 'standard',
+        headerToolbar: {
+          left: 'prev,next today',
+          center: 'title',
+          right: 'dayGridMonth,timeGridWeek,listWeek'
+        },
+        events: async function(fetchInfo, successCallback, failureCallback) {
+          try {
+            const resAlquileres = await fetch('http://localhost/estetica/practicando-branches-git/alquilerapi/alquileres_activos');
+            const alquileres = await resAlquileres.json();
+
+            const eventosAlquileres = alquileres.map(item => ({
+              title: `Depto ${item.departamento} (${item.estado})`,
+              start: item.fecha_entrada,
+              end: item.fecha_salida,
+              color: '#3498db',
+              extendedProps: {
+                tipo: 'alquiler',
+                precio: item.precio_total,
+                pago: item.forma_pago,
+                inquilino_id: item.nombre_completo
+              }
+            }));
+
+            const resDeuda = await fetch('http://localhost/estetica/practicando-branches-git/alquilerapi/inquilinos_deuda');
+            const deudores = await resDeuda.json();
+
+            const eventosDeudores = deudores.map(item => ({
+              title: `${item.nombre_completo} (${item.estado})`,
+              start: item.fecha_pago,
+              color: '#e74c3c',
+              extendedProps: {
+                tipo: 'deuda',
+                monto: item.monto
+              }
+            }));
+
+            successCallback([...eventosAlquileres, ...eventosDeudores]);
+          } catch (error) {
+            console.error('Error cargando eventos:', error);
+            failureCallback(error);
+          }
+        },
+        eventClick: function(info) {
+          const props = info.event.extendedProps;
+
+          if (props.tipo === 'alquiler') {
+            alert(
+              `📦 Alquiler Activo\n` +
+              `Departamento: ${info.event.title}\n` +
+              `Entrada: ${info.event.start.toLocaleDateString()}\n` +
+              `Salida: ${info.event.end ? info.event.end.toLocaleDateString() : 'No definida'}\n` +
+              `Pago: ${props.pago}\n` +
+              `Precio: $${props.precio}\n` +
+              `Inquilino: ${props.inquilino_id}`
+            );
+          } else if (props.tipo === 'deuda') {
+            alert(
+              `💰 Deuda\n` +
+              `Inquilino: ${info.event.title}\n` +
+              `Fecha de pago esperada: ${info.event.start.toLocaleDateString()}\n` +
+              `Monto: $${props.monto}`
+            );
+          }
+        }
+      });
+
+      calendar.render();
+    });
+  </script>
+
+</body>
+</html>
